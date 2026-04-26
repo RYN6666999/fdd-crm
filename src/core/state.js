@@ -13,6 +13,9 @@
 
 import { STORE, autoSnapshot } from './store.js';
 import { cloudPush } from './cloud-sync.js';
+import { migrateNodes, migrateStudents } from './migrate.js';
+import { validateNode } from '../contracts/node.js';
+import { validateStudent } from '../contracts/student.js';
 
 // 每 10 次寫入觸發一次快照
 let _writeCount = 0;
@@ -117,22 +120,41 @@ export function dispatch(action) {
   switch (action.type) {
     // ── Nodes ──
     case 'NODES_LOAD':
+      // 讀取時：寬容模式 — 補齊舊欄位，不丟失資料
+      _state.nodes = migrateNodes(action.payload);
+      STORE.saveNodes(_state.nodes);
+      _maybeSnapshot();
+      break;
     case 'NODES_SET':
       _state.nodes = action.payload;
       STORE.saveNodes(_state.nodes);
-      if (action.type !== 'NODES_LOAD') cloudPush('nodes', _state.nodes);
+      cloudPush('nodes', _state.nodes);
       _maybeSnapshot();
       break;
-    case 'NODE_ADD':
+    case 'NODE_ADD': {
+      // 寫入時：嚴格驗證，拒絕壞資料
+      const addResult = validateNode(action.payload);
+      if (!addResult.ok) {
+        console.error('[state] NODE_ADD 驗證失敗，拒絕寫入:', addResult.errors, action.payload);
+        break;
+      }
       _state.nodes.push(action.payload);
       STORE.saveNodes(_state.nodes);
       cloudPush('nodes', _state.nodes);
       _maybeSnapshot();
       break;
+    }
     case 'NODE_UPDATE': {
       const idx = _state.nodes.findIndex(n => n.id === action.payload.id);
       if (idx !== -1) {
-        _state.nodes[idx] = { ..._state.nodes[idx], ...action.payload.patch, updatedAt: Date.now() };
+        const updated = { ..._state.nodes[idx], ...action.payload.patch, updatedAt: Date.now() };
+        // 寫入時：嚴格驗證
+        const updateResult = validateNode(updated);
+        if (!updateResult.ok) {
+          console.error('[state] NODE_UPDATE 驗證失敗，拒絕寫入:', updateResult.errors, updated);
+          break;
+        }
+        _state.nodes[idx] = updated;
         STORE.saveNodes(_state.nodes);
         cloudPush('nodes', _state.nodes);
         _maybeSnapshot();
@@ -164,9 +186,35 @@ export function dispatch(action) {
     case 'CHAT_CLEAR': _state.chatHistory = []; STORE.saveChat([]); break;
 
     // ── Students ──
-    case 'STUDENTS_SET':   _state.studentsData = action.payload; STORE.saveStudents(_state.studentsData); break;
-    case 'STUDENT_ADD':    _state.studentsData.push(action.payload); STORE.saveStudents(_state.studentsData); break;
-    case 'STUDENT_UPDATE': _updateById(_state.studentsData, action.payload); STORE.saveStudents(_state.studentsData); break;
+    case 'STUDENTS_SET':
+      // 讀取時：寬容模式 — 補齊舊欄位
+      _state.studentsData = migrateStudents(action.payload);
+      STORE.saveStudents(_state.studentsData);
+      break;
+    case 'STUDENT_ADD': {
+      const sAddResult = validateStudent(action.payload);
+      if (!sAddResult.ok) {
+        console.error('[state] STUDENT_ADD 驗證失敗，拒絕寫入:', sAddResult.errors, action.payload);
+        break;
+      }
+      _state.studentsData.push(action.payload);
+      STORE.saveStudents(_state.studentsData);
+      break;
+    }
+    case 'STUDENT_UPDATE': {
+      const sIdx = _state.studentsData.findIndex(s => s.id === action.payload.id);
+      if (sIdx !== -1) {
+        const sUpdated = { ..._state.studentsData[sIdx], ...action.payload.patch };
+        const sUpdateResult = validateStudent(sUpdated);
+        if (!sUpdateResult.ok) {
+          console.error('[state] STUDENT_UPDATE 驗證失敗，拒絕寫入:', sUpdateResult.errors, sUpdated);
+          break;
+        }
+        _state.studentsData[sIdx] = sUpdated;
+        STORE.saveStudents(_state.studentsData);
+      }
+      break;
+    }
     case 'STUDENT_DELETE': _state.studentsData = _state.studentsData.filter(s => s.id !== action.payload); STORE.saveStudents(_state.studentsData); break;
 
     // ── Sales ──

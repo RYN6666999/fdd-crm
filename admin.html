@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>房多多 — 管理員後台</title>
+  <link rel="icon" href="icon.svg">
+  <link rel="stylesheet" href="crm.css">
+</head>
+<body class="admin-page">
+<header class="admin-header">
+  <img src="icon.svg" alt="房多多">
+  <div>
+    <h1>房多多 管理員後台</h1>
+    <p>查看同事登入狀態</p>
+  </div>
+</header>
+
+<div class="admin-controls">
+  <input type="password" id="tokenInput" placeholder="Admin Token" autocomplete="off">
+  <button class="btn btn-accent" onclick="loadData()">載入 / 刷新</button>
+  <span class="refresh-info" id="lastRefresh"></span>
+</div>
+
+<div id="errorBox"></div>
+
+<div class="admin-stat-bar" id="statBar" style="display:none">
+  <div class="admin-stat"><div class="admin-stat-val" id="statTotal">0</div><div class="admin-stat-lbl">登入人數</div></div>
+  <div class="admin-stat"><div class="admin-stat-val" id="statToday">0</div><div class="admin-stat-lbl">今日登入</div></div>
+  <div class="admin-stat"><div class="admin-stat-val" id="statSenior">0</div><div class="admin-stat-lbl">店長及以上</div></div>
+</div>
+
+<div id="tableWrap">
+  <div class="empty">請輸入 Token 後點擊「載入」</div>
+</div>
+
+<script>
+  const RANK_LABEL = {
+    director: '主任',
+    asst_mgr: '襄理',
+    manager: '經理',
+    shop_partner: '店股東',
+    shop_head: '店長',
+  };
+  const SENIOR_RANKS = new Set(['shop_partner', 'shop_head']);
+
+  // 嘗試從 localStorage 還原 token
+  const savedToken = localStorage.getItem('fdd-admin-token');
+  if (savedToken) document.getElementById('tokenInput').value = savedToken;
+
+  async function loadData() {
+    const token = document.getElementById('tokenInput').value.trim();
+    if (!token) { showError('請輸入 Admin Token'); return; }
+
+    localStorage.setItem('fdd-admin-token', token);
+    showError('');
+    document.getElementById('tableWrap').innerHTML = '<div class="loading">載入中…</div>';
+
+    try {
+      const res = await fetch(`./api/login?token=${encodeURIComponent(token)}`);
+      const data = await res.json();
+
+      if (!data.ok) {
+        showError(data.error || '請求失敗');
+        document.getElementById('tableWrap').innerHTML = '';
+        return;
+      }
+
+      renderTable(data.records);
+      document.getElementById('lastRefresh').textContent =
+        '最後更新：' + new Date().toLocaleTimeString('zh-TW');
+    } catch (e) {
+      showError('網路錯誤：' + e.message);
+      document.getElementById('tableWrap').innerHTML = '';
+    }
+  }
+
+  function renderTable(records) {
+    const statBar = document.getElementById('statBar');
+    statBar.style.display = 'flex';
+
+    const today = new Date().toISOString().slice(0, 10);
+    const todayCount  = records.filter(r => r.ts.startsWith(today)).length;
+    const seniorCount = records.filter(r => SENIOR_RANKS.has(r.rank)).length;
+
+    document.getElementById('statTotal').textContent  = records.length;
+    document.getElementById('statToday').textContent  = todayCount;
+    document.getElementById('statSenior').textContent = seniorCount;
+
+    if (!records.length) {
+      document.getElementById('tableWrap').innerHTML = '<div class="empty">目前無登入記錄</div>';
+      return;
+    }
+
+    const rows = records.map(r => {
+      const ts = new Date(r.ts);
+      const tsStr = ts.toLocaleString('zh-TW', {
+        month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit',
+      });
+      const rankClass = `rank-${r.rank}`;
+      const rankLabel = RANK_LABEL[r.rank] || r.rank;
+      return `
+        <tr>
+          <td>${escHtml(r.name)}</td>
+          <td><span class="rank-badge ${rankClass}">${rankLabel}</span></td>
+          <td class="ts">${tsStr}</td>
+        </tr>`;
+    }).join('');
+
+    document.getElementById('tableWrap').innerHTML = `
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>姓名</th>
+            <th>職級</th>
+            <th>最後登入</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  function showError(msg) {
+    const box = document.getElementById('errorBox');
+    box.innerHTML = msg ? `<div class="error-msg">${escHtml(msg)}</div>` : '';
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // 自動刷新（如果已有 token）
+  if (savedToken) loadData();
+</script>
+</body>
+</html>

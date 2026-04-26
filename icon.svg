@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#161b22"/>
+  <!-- 根節點 -->
+  <circle cx="256" cy="130" r="52" fill="#388bfd"/>
+  <!-- 左子節點 -->
+  <circle cx="120" cy="340" r="44" fill="#3fb950"/>
+  <!-- 右子節點 -->
+  <circle cx="392" cy="340" r="44" fill="#d29922"/>
+  <!-- 連線 -->
+  <line x1="256" y1="182" x2="256" y2="240" stroke="#444c56" stroke-width="12" stroke-linecap="round"/>
+  <line x1="256" y1="240" x2="120" y2="296" stroke="#444c56" stroke-width="12" stroke-linecap="round"/>
+  <line x1="256" y1="240" x2="392" y2="296" stroke="#444c56" stroke-width="12" stroke-linecap="round"/>
+  <!-- 房子符號（根節點內） -->
+  <path d="M238 120 L256 104 L274 120 L274 140 L238 140 Z" fill="#fff" opacity="0.9"/>
+  <rect x="249" y="128" width="14" height="12" fill="#388bfd"/>
+</svg>

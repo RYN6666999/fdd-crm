@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>房多多 — 登入</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#161b22">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="房多多">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="icon" href="icon.svg">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-bottom: 2rem;
+    }
+    .logo img { width: 48px; height: 48px; border-radius: 10px; }
+    .logo-text h1 { font-size: 1.25rem; font-weight: 700; color: #e6edf3; }
+    .logo-text p  { font-size: .8rem; color: #8b949e; margin-top: 2px; }
+
+    label {
+      display: block;
+      font-size: .85rem;
+      color: #8b949e;
+      margin-bottom: .4rem;
+      margin-top: 1.25rem;
+    }
+    label:first-of-type { margin-top: 0; }
+
+    input, select {
+      width: 100%;
+      padding: .7rem 1rem;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #e6edf3;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    input:focus, select:focus { border-color: #388bfd; }
+    select option { background: #161b22; }
+
+    .btn {
+      display: block;
+      width: 100%;
+      margin-top: 2rem;
+      padding: .8rem;
+      background: #238636;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, opacity .2s;
+    }
+    .btn:hover { background: #2ea043; }
+    .btn:disabled { opacity: .5; cursor: default; }
+
+    .msg {
+      margin-top: 1rem;
+      font-size: .85rem;
+      text-align: center;
+      color: #f85149;
+      min-height: 1.2em;
+    }
+    .msg.ok { color: #3fb950; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <img src="icon.svg" alt="房多多">
+    <div class="logo-text">
+      <h1>房多多經營系統</h1>
+      <p>人脈樹 · 業績管理 · 日報表</p>
+    </div>
+  </div>
+
+  <label for="name">姓名</label>
+  <input id="name" type="text" placeholder="請輸入真實姓名" maxlength="30" autocomplete="name">
+
+  <label for="rank">職級</label>
+  <select id="rank">
+    <option value="">— 選擇職級 —</option>
+    <option value="director">主任</option>
+    <option value="asst_mgr">襄理</option>
+    <option value="manager">經理</option>
+    <option value="shop_partner">店股東</option>
+    <option value="shop_head">店長</option>
+  </select>
+
+  <button class="btn" id="loginBtn" onclick="doLogin()">進入系統</button>
+  <div class="msg" id="msg"></div>
+</div>
+
+<script>
+  const RANK_LABEL = {
+    director: '主任',
+    asst_mgr: '襄理',
+    manager: '經理',
+    shop_partner: '店股東',
+    shop_head: '店長',
+  };
+
+  // 已登入則直接跳轉
+  (function(){
+    const saved = localStorage.getItem('crm-login');
+    if (saved) {
+      try {
+        const { name, rank } = JSON.parse(saved);
+        if (name && rank) { window.location.replace('./index.html'); }
+      } catch(e) {}
+    }
+  })();
+
+  async function doLogin() {
+    const name = document.getElementById('name').value.trim();
+    const rank = document.getElementById('rank').value;
+    const msg  = document.getElementById('msg');
+    const btn  = document.getElementById('loginBtn');
+
+    if (!name) { msg.textContent = '請輸入姓名'; return; }
+    if (!rank)  { msg.textContent = '請選擇職級'; return; }
+
+    btn.disabled = true;
+    msg.className = 'msg';
+    msg.textContent = '登入中…';
+
+    // 儲存本地
+    const record = { name, rank, rankLabel: RANK_LABEL[rank], ts: new Date().toISOString() };
+    localStorage.setItem('crm-login', JSON.stringify(record));
+    localStorage.setItem('crm-profile-rank', rank); // 與原系統 STORE.K.profileRank 同步
+
+    // 上報後端（fire-and-forget，不阻塞進入）
+    fetch('./api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, rank }),
+    }).catch(() => {}); // 離線時靜默失敗
+
+    msg.className = 'msg ok';
+    msg.textContent = `歡迎，${name} ${RANK_LABEL[rank]}！`;
+    setTimeout(() => { window.location.replace('./index.html'); }, 600);
+  }
+
+  // Enter key support
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+</script>
+</body>
+</html>

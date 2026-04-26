@@ -1,0 +1,24 @@
+# Cloudflare Pages — HTTP Header Rules
+
+# sw.js 永遠不快取，確保每次開啟都能偵測到新版本
+/sw.js
+  Cache-Control: no-store, no-cache, must-revalidate
+
+# manifest.json 也不快取
+/manifest.json
+  Cache-Control: no-cache
+
+# HTML — 每次重新驗證（讓 SW 感知到新版本）
+/*.html
+  Cache-Control: no-cache, must-revalidate
+
+# JS / CSS — CDN 可快取 1 年，但瀏覽器每次重新驗證
+# 這樣改完 push 馬上生效，不需要 bump SW 版本
+/src/*
+  Cache-Control: no-cache, must-revalidate
+
+/*.js
+  Cache-Control: no-cache, must-revalidate
+
+/*.css
+  Cache-Control: no-cache, must-revalidate

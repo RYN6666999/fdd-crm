@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>房多多經營系統</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#161b22">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="房多多">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="crm.css?v=9">
+<style>
+.chat-ctx-warn{margin:8px 12px;padding:8px 12px;background:rgba(210,120,0,.15);border:1px solid rgba(210,120,0,.4);border-radius:8px;font-size:12px;color:#f0a040;text-align:center}
+.chat-attach-btn{background:none;border:none;font-size:18px;cursor:pointer;padding:0 6px;opacity:.6;flex-shrink:0;line-height:1}
+.chat-attach-btn:hover{opacity:1}
+.chat-attach-preview{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px;min-height:0}
+.chat-attach-preview:empty{padding:0}
+.attach-thumb{position:relative;display:inline-flex;align-items:center;gap:4px;background:var(--bg-2,#2a2a2a);border:1px solid var(--border,#3a3a3a);border-radius:8px;overflow:hidden;font-size:12px;max-width:120px}
+.attach-thumb img{width:60px;height:60px;object-fit:cover;display:block}
+.attach-thumb.attach-file{padding:6px 8px;max-width:160px}
+.attach-thumb-name{padding:2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-muted,#aaa);font-size:11px}
+.attach-remove{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);border:none;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.chat-bubble img{max-width:240px;border-radius:8px;margin-top:4px;display:block}
+.chat-timing{margin-top:6px;font-size:11px;color:var(--text-muted,#888);opacity:.75}
+.chat-timer-count{font-size:13px;color:var(--text-muted,#999);font-variant-numeric:tabular-nums}
+.chat-session-bar{position:relative;margin:6px 12px 0;font-size:12px;z-index:100}
+.session-none{padding:4px 10px;color:var(--text-muted,#888);font-size:12px}
+.session-label{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--bg-2,#2a2a2a);border:1px solid var(--border,#3a3a3a);border-radius:20px;cursor:pointer;user-select:none;max-width:100%}
+.session-label:hover{border-color:var(--accent,#4a9eff)}
+.session-contact{color:var(--text,#eee);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
+.session-sep{color:var(--text-muted,#666);font-size:10px}
+.session-thread{color:var(--accent,#4a9eff);white-space:nowrap}
+.session-arrow{font-size:10px;opacity:.5;color:var(--text-muted,#888)}
+.session-dropdown{position:absolute;top:calc(100% + 6px);left:0;min-width:240px;background:var(--bg-2,#252525);border:1px solid var(--border,#3a3a3a);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:300;overflow:hidden;padding:4px 0}
+.session-section-title{padding:6px 12px 4px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted,#777)}
+.session-item{padding:7px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.session-item:hover{background:var(--bg-3,#333)}
+.session-item.active{background:rgba(74,158,255,.08)}
+.session-item.session-new{color:var(--text-muted,#888);font-size:12px}
+.session-item.session-new:hover{color:var(--accent,#4a9eff)}
+.session-name{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.session-meta{font-size:11px;color:var(--text-muted,#777);white-space:nowrap;flex-shrink:0}
+
+/* ── Image recognition UI ── */
+.attach-thumb{flex-direction:column;align-items:stretch;max-width:140px}
+.attach-thumb img{width:100%;height:70px;object-fit:cover;display:block;border-radius:6px 6px 0 0}
+.attach-actions{display:flex;gap:4px;padding:4px 6px;background:rgba(0,0,0,.3)}
+.attach-action-btn{flex:1;background:rgba(255,255,255,.07);border:none;border-radius:4px;font-size:13px;cursor:pointer;padding:2px 0;line-height:1.4;transition:background .15s}
+.attach-action-btn:hover{background:rgba(255,255,255,.15)}
+.attach-action-btn.done{background:rgba(74,158,255,.2);outline:1px solid rgba(74,158,255,.4)}
+.attach-result{padding:5px 7px;font-size:11px;border-top:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.2)}
+.attach-result.loading{color:var(--text-muted,#888)}
+.attach-result.error{color:#e05050}
+.attach-result.done{color:var(--text,#ddd)}
+.attach-result-header{display:flex;justify-content:space-between;align-items:center;gap:4px;margin-bottom:3px}
+.attach-result-header strong{font-size:10px;opacity:.7}
+.attach-insert-btn{font-size:10px;padding:1px 6px;background:var(--accent,#4a9eff);border:none;border-radius:3px;color:#fff;cursor:pointer;white-space:nowrap}
+.attach-insert-btn:hover{opacity:.85}
+.attach-result-text{color:var(--text-muted,#bbb);font-size:10px;line-height:1.4;max-height:60px;overflow:auto;word-break:break-all}
+</style>
+<!-- 登入守衛：未登入則跳轉 login.html -->
+<script>
+  (function(){
+    var s = localStorage.getItem('crm-login');
+    if (!s) { window.location.replace('./login.html'); return; }
+    try { var o=JSON.parse(s); if(!o.name||!o.rank) window.location.replace('./login.html'); }
+    catch(e){ window.location.replace('./login.html'); }
+  })();
+</script>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-logo">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    房多多經營系統
+  </div>
+  <div class="header-sep"></div>
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchPage('crm')" id="tab-crm"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><circle cx="18" cy="5" r="2.2"/><circle cx="18" cy="19" r="2.2"/><path d="M12 7h3.5M12 7l4 10M12 7l-1 10"/><circle cx="8" cy="17" r="3"/></svg>人脈</button>
+    <button class="tab-btn" onclick="switchPage('daily')" id="tab-daily"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>日報</button>
+    <button class="tab-btn" onclick="switchPage('events')" id="tab-events"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>日程</button>
+    <button class="tab-btn" onclick="switchPage('sales')" id="tab-sales"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>業績</button>
+    <button class="tab-btn" onclick="switchPage('docs')" id="tab-docs"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>文件</button>
+    <button class="tab-btn" onclick="switchPage('ai')" id="tab-ai"><svg viewBox="0 0 24 24"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 15l.8 2.2 2.2.8-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>AI</button>
+    <button class="tab-btn" onclick="switchPage('students')" id="tab-students"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>學員</button>
+    <button class="tab-btn" onclick="switchPage('settings')" id="tab-settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>設定</button>
+  </div>
+  <div class="header-stats" id="header-stats"></div>
+  <div class="header-actions">
+    <button class="btn btn-accent" onclick="headerAddNode()">＋ 新增聯繫人</button>
+    <button class="btn" style="padding:.4rem .8rem;background:var(--surface2);border:1px solid var(--border)" onclick="headerAddNote()" title="新增純文字便條">📝 便條</button>
+    <span id="header-user-badge" style="font-size:.8rem;color:var(--text-muted);margin-left:.5rem"></span>
+    <button class="btn" style="padding:.3rem .7rem;font-size:.78rem;margin-left:.25rem;color:var(--text-muted)" onclick="doLogout()" title="登出">⏏</button>
+  </div>
+</div>
+<script>
+  // 顯示登入者姓名
+  (function(){
+    try {
+      var lv = JSON.parse(localStorage.getItem('crm-login')||'{}');
+      var el = document.getElementById('header-user-badge');
+      if(el && lv.name) el.textContent = (lv.rankLabel||'') + ' ' + lv.name;
+    } catch(e){}
+  })();
+  function doLogout(){
+    if(!confirm('確定要登出？')) return;
+    localStorage.removeItem('crm-login');
+    window.location.replace('./login.html');
+  }
+</script>
+
+<!-- CRM Page -->
+<div class="page" id="page-crm">
+  <div class="crm-view-bar">
+    <button class="crm-view-btn active" id="vbtn-tree" onclick="setCrmView('tree')">🌳 樹狀圖</button>
+    <button class="crm-view-btn" id="vbtn-graph" onclick="setCrmView('graph')">🕸 人脈圖</button>
+    <button class="crm-view-btn" id="vbtn-region" onclick="setCrmView('region')">📍 地區</button>
+    <button class="crm-view-btn" id="vbtn-status" onclick="setCrmView('status')">🔵 狀態</button>
+    <button class="crm-view-btn" id="vbtn-contact" onclick="setCrmView('contact')">📅 最近聯繫</button>
+    <button class="crm-sort-btn" id="crm-sort-dir-btn" onclick="toggleCrmSortDir()" title="排序方向" style="display:none">↑ 升冪</button>
+  </div>
+  <div id="canvas-container">
+    <div id="canvas" style="position:absolute;top:0;left:0;transform-origin:0 0;transform:translate(0px,0px) scale(1)">
+      <svg id="edges-svg" style="position:absolute;top:0;left:0;overflow:visible;pointer-events:none;z-index:0;width:1px;height:1px"></svg>
+      <div id="nodes-layer" style="position:relative;z-index:1"></div>
+    </div>
+  </div>
+  <div class="canvas-controls">
+    <button onclick="zoomBy(1.15)" title="放大 (Ctrl+=)">+</button>
+    <span id="zoom-label">100%</span>
+    <button onclick="zoomBy(0.87)" title="縮小 (Ctrl+-)">−</button>
+    <button onclick="fitView()" title="適合視窗 (F)">⊡</button>
+    <button onclick="forceLayout()" title="整理排列" style="font-size:12px">⚡整理</button>
+    <button onclick="openSkModal()" title="快捷鍵設定">⌨</button>
+  </div>
+  <div class="shortcuts-hint" id="shortcuts-hint"></div>
+  <div id="crm-list-container">
+    <div class="crm-list-view" id="crm-list-view"></div>
+  </div>
+</div>
+
+<!-- Events Page -->
+<div class="page" id="page-events">
+  <div class="cal-wrapper">
+    <div class="cal-header">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+        <div class="cal-month-label" id="cal-month-label">—</div>
+        <button class="cal-nav-btn" onclick="calNext()">›</button>
+      </div>
+      <button class="cal-today-btn" onclick="calGoToday()">今天</button>
+      <div class="cal-header-actions">
+        <button class="btn btn-accent" onclick="openEventModal(null,calTodayStr())">＋ 新增活動</button>
+      </div>
+    </div>
+    <div class="cal-body">
+      <div class="cal-weekdays">
+        <div class="cal-weekday">日</div><div class="cal-weekday">一</div>
+        <div class="cal-weekday">二</div><div class="cal-weekday">三</div>
+        <div class="cal-weekday">四</div><div class="cal-weekday">五</div>
+        <div class="cal-weekday">六</div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI Page -->
+<div class="page" id="page-ai">
+  <div class="ai-container">
+
+    <!-- Top bar -->
+    <div class="ai-topbar">
+      <span id="ai-model-badge" class="ai-model-badge">模型：—</span>
+      <span style="flex:1"></span>
+      <button class="btn btn-sm" onclick="generateDailyBriefing()" title="生成今日 AI 簡報">🌅 今日簡報</button>
+      <button class="btn btn-sm" id="mem-toggle-btn" onclick="toggleMemPanel()" title="記憶庫">🧠 記憶</button>
+      <button class="btn btn-sm" onclick="switchPage('settings')">⚙ 設定</button>
+      <button class="btn btn-sm" onclick="toggleAiDiag()" title="診斷 AI 連線">🔍 診斷</button>
+      <button class="btn btn-sm" onclick="smartClearChat()">清除</button>
+    </div>
+
+    <!-- AI Diagnostic Panel -->
+    <div id="ai-diag-panel" style="display:none;border:1px solid var(--border);border-radius:10px;margin:8px 0;padding:12px 14px;background:var(--bg-card);font-size:13px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <strong>🔍 AI 連線診斷</strong>
+        <button class="btn btn-sm" onclick="toggleAiDiag()" style="padding:2px 8px">✕</button>
+      </div>
+      <div id="ai-diag-config" style="margin-bottom:10px"></div>
+      <button class="btn btn-accent btn-sm" id="ai-diag-run-btn" onclick="runAiDiagnostic()" style="width:100%;margin-bottom:8px">🚀 測試連線</button>
+      <pre id="ai-diag-log" style="margin:0;font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-all;min-height:24px"></pre>
+    </div>
+
+    <!-- Memory Panel (D1-D5) -->
+    <div class="mem-panel" id="mem-panel" style="display:none">
+      <div class="mem-panel-header">
+        <div class="mem-tabs" id="mem-tabs">
+          <button class="mem-tab active" data-type="" onclick="switchMemTab('',this)">全部</button>
+          <button class="mem-tab" data-type="rule" onclick="switchMemTab('rule',this)">規則</button>
+          <button class="mem-tab" data-type="fact" onclick="switchMemTab('fact',this)">事實</button>
+          <button class="mem-tab" data-type="episode" onclick="switchMemTab('episode',this)">紀錄</button>
+          <button class="mem-tab" data-type="style" onclick="switchMemTab('style',this)">偏好</button>
+        </div>
+        <input class="mem-search" id="mem-search" type="text" placeholder="🔍 搜尋記憶…" oninput="renderMemPanel()">
+      </div>
+      <div class="mem-list" id="mem-list"><div class="mem-empty">載入中…</div></div>
+      <div class="mem-add-bar">
+        <input class="mem-add-input" id="mem-add-input" type="text" placeholder="手動新增記憶（一句話）…"
+          onkeydown="if(event.key==='Enter')addManualMemory()">
+        <button class="btn btn-sm btn-accent" onclick="addManualMemory()">＋</button>
+      </div>
+    </div>
+
+    <!-- Session bar -->
+    <div class="chat-session-bar" id="chat-session-bar"></div>
+
+    <!-- Persona pills -->
+    <div class="ai-persona-bar" id="ai-persona-bar">
+      <span class="ai-persona-label">角色：</span>
+      <button class="persona-pill active" data-persona="assistant" onclick="setPersona('assistant',this)">🤖 通用助理</button>
+      <button class="persona-pill" data-persona="analyst" onclick="setPersona('analyst',this)">📊 業績分析師</button>
+      <button class="persona-pill" data-persona="secretary" onclick="setPersona('secretary',this)">📝 日報小秘書</button>
+      <button class="persona-pill" data-persona="scriptforge" onclick="setPersona('scriptforge',this)">🎯 沙盤推演</button>
+    </div>
+
+    <!-- Quick prompts -->
+    <div class="ai-quick-prompts" id="ai-quick-prompts"></div>
+
+    <!-- Chat area -->
+    <div class="chat-area" id="chat-area"></div>
+
+    <!-- Attachment preview -->
+    <div class="chat-attach-preview" id="chat-attach-preview"></div>
+
+    <!-- Input area -->
+    <div class="chat-input-area">
+      <button class="chat-attach-btn" title="附加圖片或文件" onclick="document.getElementById('chat-file-input').click()">📎</button>
+      <input type="file" id="chat-file-input" accept="image/*,.pdf,.txt,.md,.csv,.xlsx,.docx" multiple style="display:none" onchange="window.__crmAttachFiles?.(this.files)">
+      <textarea class="chat-input" id="chat-input" rows="1"
+        placeholder="輸入訊息…（Enter 發送，Shift+Enter 換行，可貼上截圖）"
+        oninput="autoResizeChat(this)"></textarea>
+      <button class="btn btn-accent" id="send-btn" onclick="sendChat()">發送</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Sales / 業績 Page -->
+<div class="page" id="page-sales">
+  <div class="sales-page">
+    <div class="sales-header">
+      <div class="sales-month-nav">
+        <button class="sales-month-btn" onclick="salesPrevMonth()">‹</button>
+        <div class="sales-month-label" id="sales-month-label">—</div>
+        <button class="sales-month-btn" onclick="salesNextMonth()">›</button>
+      </div>
+      <button class="sales-month-btn" onclick="salesGoToday()" style="width:auto;padding:0 10px;font-size:12px">本月</button>
+      <div style="margin-left:auto">
+        <button class="btn btn-accent" onclick="openSaleModal(null)">＋ 新增成交</button>
+      </div>
+    </div>
+    <div class="sales-body" id="sales-body"></div>
+  </div>
+</div>
+
+<!-- Add Sale Modal -->
+<div class="sale-modal" id="sale-modal">
+  <div class="sale-modal-box">
+    <div class="sale-modal-title">
+      <span id="sale-modal-product-badge" class="sale-product-badge">—</span>
+      <span id="sale-modal-title-text">新增成交</span>
+    </div>
+    <div class="sale-type-row">
+      <label class="sale-type-radio">
+        <input type="radio" name="sale-type" value="new" checked onchange="onSaleTypeChange()">💰 新業績
+      </label>
+      <label class="sale-type-radio">
+        <input type="radio" name="sale-type" value="transfer" onchange="onSaleTypeChange()">🔄 舊單轉讓
+      </label>
+    </div>
+    <div id="sale-product-group">
+      <div class="field-group">
+        <div class="field-label">產品</div>
+        <select class="field-input" id="sale-product" onchange="onSaleProductChange()">
+          <option value="student">學員 — NT$ 79,800</option>
+          <option value="member">會員服務 — NT$ 200,000</option>
+          <option value="vip">VIP買房服務 — NT$ 300,000</option>
+          <option value="asst_mgr_pkg">襄理批貨 — NT$ 478,800</option>
+          <option value="manager_pkg">經理批貨 — NT$ 1,197,000</option>
+          <option value="consult">協談+ — NT$ 2,394／人</option>
+        </select>
+      </div>
+      <div class="field-group" id="sale-qty-group" style="display:none">
+        <div class="field-label">人數</div>
+        <input class="field-input" type="number" id="sale-qty" min="1" value="1" placeholder="人數" oninput="onSaleProductChange()">
+      </div>
+      <div class="field-group" id="sale-batchby-group" style="display:none">
+        <div class="field-label">批貨對象</div>
+        <div style="display:flex;gap:14px">
+          <label class="sale-type-radio"><input type="radio" name="sale-batchby" value="self" checked onchange="onSaleProductChange()"> 本人批貨</label>
+          <label class="sale-type-radio"><input type="radio" name="sale-batchby" value="student" onchange="onSaleProductChange()"> 傘下學員批貨</label>
+        </div>
+      </div>
+      <div class="field-group" id="sale-samerank-group" style="display:none">
+        <div class="field-label">業績來源</div>
+        <div style="display:flex;gap:14px">
+          <label class="sale-type-radio"><input type="radio" name="sale-samerank" value="self" checked onchange="onSaleProductChange()"> 本人業績</label>
+          <label class="sale-type-radio"><input type="radio" name="sale-samerank" value="samerank" onchange="onSaleProductChange()"> 傘下同階業績 (1%)</label>
+        </div>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <div class="field-label">日期</div>
+        <input class="field-input" type="date" id="sale-date">
+      </div>
+      <div class="field-group">
+        <div class="field-label">業績金額</div>
+        <input class="field-input" id="sale-amount-display" inputmode="numeric"
+          onfocus="onSaleAmountFocus()" onblur="onSaleAmountBlur()" oninput="onSaleAmountInput()"
+          style="font-weight:600;color:var(--accent)">
+      </div>
+    </div>
+    <div class="field-group">
+      <div class="field-label">客戶（人脈節點）</div>
+      <div class="ev-participants" id="sale-pax"></div>
+    </div>
+    <div class="field-group">
+      <div class="field-label">備注</div>
+      <input class="field-input" id="sale-notes" placeholder="備注">
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text-muted);display:flex;flex-direction:column;gap:4px">
+      <div>我的所得：<strong id="sale-income-preview" style="color:var(--accent)">—</strong></div>
+      <div>稅金 12.11%：<strong id="sale-tax-preview" style="color:var(--red)">—</strong>
+      &nbsp;&nbsp;稅後實得：<strong id="sale-net-preview" style="color:var(--green)">—</strong></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeSaleModal()">取消</button>
+      <button class="btn btn-accent" onclick="saveSale()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Daily Report Page -->
+<div class="page" id="page-daily">
+  <div class="daily-page">
+    <div class="daily-header">
+      <div class="daily-header-title">📋 日報表</div>
+      <div class="daily-date-nav">
+        <button onclick="dailyPrev()">‹</button>
+        <input type="date" id="daily-date-input" onchange="renderDailyPage()">
+        <button onclick="dailyNext()">›</button>
+        <button class="btn" style="font-size:11px;padding:4px 10px" onclick="dailyToday()">今天</button>
+      </div>
+      <button class="btn btn-accent" style="margin-left:8px" onclick="saveDailyReport()">儲存</button>
+    </div>
+    <div class="daily-body" id="daily-body"></div>
+  </div>
+</div>
+
+<!-- Docs Page -->
+<div class="page" id="page-docs">
+  <div class="docs-page">
+    <div class="docs-header">
+      <div class="docs-title">📁 常用文件</div>
+      <button class="btn btn-accent" onclick="openDocModal()">＋ 新增文件</button>
+    </div>
+    <!-- 全頁拖放區（覆蓋整個文件頁） -->
+    <div class="docs-dropzone" id="docs-dropzone"
+         ondragover="docsOnDragOver(event)"
+         ondragleave="docsOnDragLeave(event)"
+         ondrop="docsOnDrop(event)">
+      <div class="docs-dropzone-hint" id="docs-dropzone-hint">
+        <span class="docs-dropzone-icon">📂</span>
+        <span>拖曳檔案到此處即可快速新增</span>
+        <span style="font-size:11px;opacity:.6">支援圖片、PDF、任意檔案，可一次拖入多個</span>
+      </div>
+      <div class="docs-grid" id="docs-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Doc Add Modal -->
+<div class="doc-add-modal" id="doc-add-modal">
+  <div class="doc-add-box">
+    <div style="font-size:15px;font-weight:600">新增文件</div>
+    <div class="field-group">
+      <div class="field-label">類型</div>
+      <select class="field-input" id="doc-type" onchange="onDocTypeChange()">
+        <option value="poster">🖼 海報圖片</option>
+        <option value="form">📋 問卷連結</option>
+        <option value="link">🔗 其他連結</option>
+        <option value="file">📄 文件檔案</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <div class="field-label">名稱</div>
+      <input class="field-input" id="doc-name" placeholder="文件名稱">
+    </div>
+    <div class="field-group" id="doc-url-group">
+      <div class="field-label">連結 / URL</div>
+      <input class="field-input" id="doc-url" placeholder="https://…">
+    </div>
+    <!-- 統一拖放 / 點擊上傳區 -->
+    <div class="field-group" id="doc-file-group" style="display:none">
+      <div class="field-label">檔案</div>
+      <div class="doc-file-dropzone" id="doc-file-dropzone"
+           onclick="document.getElementById('doc-file-input').click()"
+           ondragover="modalFileOver(event)"
+           ondragleave="modalFileLeave(event)"
+           ondrop="modalFileDrop(event)">
+        <span class="doc-file-dropzone-icon" id="doc-file-icon">⬆</span>
+        <span id="doc-file-label">點擊選擇 或 拖曳檔案至此</span>
+        <span id="doc-file-hint" style="font-size:11px;opacity:.55">圖片 / PDF / 任意格式</span>
+      </div>
+      <input type="file" id="doc-file-input" style="display:none" onchange="modalFileChange(this)">
+      <img id="doc-img-preview" style="display:none;max-height:120px;border-radius:8px;margin-top:8px;object-fit:cover;width:100%">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeDocModal()">取消</button>
+      <button class="btn btn-accent" onclick="saveDoc()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Page -->
+<div class="page" id="page-settings">
+  <div class="settings-page">
+    <h2 class="settings-title">⚙️ 設定</h2>
+
+    <!-- PWA Install -->
+    <div class="settings-card" id="pwa-card">
+      <div class="settings-card-title">📲 安裝 App</div>
+      <div id="pwa-install-area"></div>
+    </div>
+
+    <!-- Google Calendar -->
+    <div class="settings-card">
+      <div class="settings-card-title">📅 Google 日曆連結</div>
+      <div class="settings-card-desc">點擊授權，用 Google 帳號登入即可同步日曆事件。</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-accent" onclick="startGoogleOAuth()">🔗 用 Google 帳號授權</button>
+        <button class="btn" onclick="fetchGcalEvents()">🔄 同步事件</button>
+        <button class="btn" onclick="resetGoogleClientId()" style="font-size:11px">清除</button>
+        <span id="gcal-status" style="font-size:12px;color:var(--text-muted)">未連結</span>
+      </div>
+    </div>
+
+    <!-- Google Sheets -->
+    <div class="settings-card">
+      <div class="settings-card-title">📊 Google 試算表（日報同步）</div>
+      <div class="settings-card-desc">授權後可將日報表一鍵同步到指定的 Google 試算表，供主管檢視。</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-accent" onclick="startSheetsOAuth()">🔗 授權 Google Sheets</button>
+          <button class="btn" onclick="resetSheetsAuth()" style="font-size:11px">清除</button>
+          <span id="gsheets-status" style="font-size:12px;color:var(--text-muted)">未連結</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <label style="font-size:12px;color:var(--text-muted);white-space:nowrap;flex-shrink:0">試算表 ID</label>
+          <input class="field-input" id="gsheets-id-input" placeholder="貼入 Google 試算表 ID…"
+            value="1cRVMpiN0tYrUiXFsjf-x_5RXnWYF7uY5_Uy-kY0jdvA" style="flex:1;font-size:12px">
+          <button class="btn" onclick="saveSheetsId()" style="white-space:nowrap">儲存</button>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted)">
+          同步後會在試算表新增「日報表」分頁，欄位：日期、五大KPI、三件大事、連結人數、感謝/優化、明天要做。
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Model -->
+    <div class="settings-card">
+      <div class="settings-card-title">🤖 AI 模型設定</div>
+      <div class="settings-card-desc">選擇 AI 供應商與模型，並填入對應的 API Key。</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <label style="font-size:12px;color:var(--text-muted);white-space:nowrap">供應商</label>
+          <select class="field-input" id="ai-provider-select" onchange="onAiProviderChange()" style="flex:1;min-width:150px">
+            <option value="claude">Claude (Anthropic)</option>
+            <option value="openai">GPT (OpenAI)</option>
+            <option value="gemini">Gemini (Google)</option>
+            <option value="grok">Grok (xAI)</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="custom">自定義</option>
+          </select>
+          <select class="field-input" id="ai-model-select" onchange="saveAiSettings()" style="flex:1;min-width:160px"></select>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <label style="font-size:12px;color:var(--text-muted);white-space:nowrap">API Key</label>
+          <input class="field-input" type="text" id="ai-apikey-input" placeholder="貼入 API Key…" oninput="saveAiSettings()" onchange="saveAiSettings()" onblur="saveAiSettings()" autocomplete="off" spellcheck="false" style="flex:1;font-family:monospace;font-size:12px">
+          <button type="button" id="ai-apikey-toggle" onclick="(function(){const i=document.getElementById('ai-apikey-input');const b=document.getElementById('ai-apikey-toggle');if(i.style.webkitTextSecurity==='disc'||i.getAttribute('data-masked')==='1'){i.style.webkitTextSecurity='';i.setAttribute('data-masked','0');b.textContent='🙈';}else{i.style.webkitTextSecurity='disc';i.setAttribute('data-masked','1');b.textContent='👁';};})()" style="padding:6px 10px;font-size:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text)">👁</button>
+        </div>
+        <div id="ai-custom-endpoint-row" style="display:none;gap:10px;align-items:center">
+          <label style="font-size:12px;color:var(--text-muted);white-space:nowrap">端點 URL</label>
+          <input class="field-input" id="ai-custom-endpoint" placeholder="https://…/v1/chat/completions" oninput="saveAiSettings()" style="flex:1">
+        </div>
+        <div id="ai-settings-status" style="font-size:11px;color:var(--text-muted)"></div>
+      </div>
+    </div>
+
+    <!-- Theme -->
+    <div class="settings-card">
+      <div class="settings-card-title">🎨 背景主題</div>
+      <div class="theme-grid" id="settings-theme-grid"></div>
+    </div>
+
+    <!-- Shortcuts -->
+    <div class="settings-card">
+      <div class="settings-card-title">⌨ 快捷鍵</div>
+      <div class="settings-card-desc">點擊按鍵欄位後按下新按鍵即可重新綁定。</div>
+      <div id="settings-sk-body"></div>
+      <button class="btn" style="margin-top:12px" onclick="resetShortcuts();renderSettingsPage()">恢復預設快捷鍵</button>
+    </div>
+
+    <!-- Commands -->
+    <div class="settings-card">
+      <div class="settings-card-title">🧩 指令清單（白名單 / 黑名單）</div>
+      <div class="settings-card-desc">可限制系統可以執行的指令。選擇模式後勾選要允許的指令。</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+        <label style="font-size:12px;color:var(--text-muted)">模式</label>
+        <select class="field-input" id="cmd-mode-select" style="width:220px" onchange="setCmdMode(this.value)">
+          <option value="blacklist">黑名單模式（預設允許，列入者停用）</option>
+          <option value="whitelist">白名單模式（僅允許列入者）</option>
+        </select>
+        <input class="field-input" id="cmd-filter" placeholder="搜尋指令…" oninput="renderSettingsPage()" style="flex:1;min-width:180px">
+        <button class="btn" onclick="resetCmdPolicy();renderSettingsPage()">恢復預設</button>
+      </div>
+      <div id="cmd-list"></div>
+    </div>
+
+    <!-- Obsidian -->
+    <div class="settings-card">
+      <div class="settings-card-title">🗂 Obsidian 連結</div>
+      <div class="settings-card-desc">設定 Obsidian Vault 目錄路徑，Agent 可調用相關筆記擴充人脈資料。</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <input class="field-input" id="obsidian-path" placeholder="/Users/你的名字/ObsidianVault" style="flex:1;min-width:200px" oninput="saveObsidianPath()">
+        <button class="btn btn-accent" onclick="openObsidianVault()">📂 開啟 Vault</button>
+      </div>
+      <div id="obsidian-status" style="font-size:11px;color:var(--text-muted);margin-top:6px"></div>
+    </div>
+
+    <!-- Obsidian Auto Backup -->
+    <div class="settings-card">
+      <div class="settings-card-title">⏱ Obsidian 定時備份</div>
+      <div class="settings-card-desc">每 5 分鐘自動寫入今日備份到指定資料夾。每天一個檔案（CRM-YYYY-MM-DD.json），可逆向還原任意日期資料。</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-accent" id="ob-backup-btn" onclick="OB_BACKUP.requestDir()">📁 授權 Obsidian 資料夾</button>
+        <button class="btn" id="ob-backup-clear" style="display:none;color:var(--red)" onclick="OB_BACKUP.clear()">清除設定</button>
+      </div>
+      <div id="ob-backup-status" style="font-size:11px;color:var(--text-muted);margin-top:6px">未設定自動備份</div>
+      <div style="font-size:11px;color:var(--text-subtle);margin-top:4px">僅支援 Chrome / Edge。授權後每次開啟頁面會自動申請續期。</div>
+    </div>
+
+    <!-- Cloud Sync / MCP -->
+    <div class="settings-card">
+      <div class="settings-card-title">☁️ 雲端同步 &amp; MCP 接入</div>
+      <div class="settings-card-desc">設定 API Token 後，CRM 資料會自動同步到雲端，Hermes 等 AI Agent 可透過 MCP 讀寫資料。</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input class="field-input" id="cloud-token-input" type="password" placeholder="API Token（留空=停用同步）" style="flex:1;min-width:200px">
+        <button class="btn btn-accent" onclick="saveCloudToken()">儲存</button>
+        <button class="btn" onclick="testCloudConn()">測試連線</button>
+      </div>
+      <div id="cloud-sync-status" style="font-size:11px;color:var(--text-muted);margin-top:6px"></div>
+      <div style="font-size:11px;color:var(--text-subtle);margin-top:6px">
+        MCP 端點：<code style="background:var(--bg-2);padding:2px 6px;border-radius:4px;user-select:all">https://fdd-crm.pages.dev/api/mcp</code>
+        &nbsp;·&nbsp; 首次使用請先呼叫 <code style="background:var(--bg-2);padding:2px 6px;border-radius:4px">crm_set_token</code> 工具初始化 Token
+      </div>
+    </div>
+
+    <!-- Backup -->
+    <div class="settings-card">
+      <div class="settings-card-title">💾 備份與還原</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-accent" onclick="exportAll()">⬇ 匯出備份 (JSON)</button>
+        <label class="btn" style="cursor:pointer">⬆ 匯入備份
+          <input type="file" accept=".json" onchange="importAll(event)" style="display:none">
+        </label>
+        <button class="btn" style="color:var(--red)" onclick="clearAllData()">🗑 清除所有資料</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-subtle);margin-top:8px">完整備份：人脈節點、業績記錄、日報表、月份目標、活動、任務。匯入前系統會再次確認。</div>
+    </div>
+
+    <!-- AI Chat Backup -->
+    <div class="settings-card">
+      <div class="settings-card-title">🤖 AI 對話備份</div>
+      <div class="settings-card-desc">備份所有聯絡人的 AI 對話紀錄（含各場景）＋記憶庫摘要。可跨裝置還原或在資料消失時找回。</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+        <button id="ai-backup-export-btn" class="btn btn-accent" onclick="exportAiData()">⬇ 匯出 AI 對話備份</button>
+        <label id="ai-backup-import-btn" class="btn" style="cursor:pointer">⬆ 匯入 AI 對話備份
+          <input type="file" accept=".json" onchange="importAiData(event)" style="display:none">
+        </label>
+      </div>
+      <div id="ai-backup-stats" style="font-size:12px;color:var(--text-muted)">載入中…</div>
+    </div>
+
+    <!-- Auto Snapshots -->
+    <div class="settings-card">
+      <div class="settings-card-title">🔄 自動快照還原</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">系統每 10 次操作、每 5 分鐘、頁面關閉前自動快照，保留最近 5 份。</div>
+      <button class="btn" onclick="refreshSnapshots()" style="margin-bottom:10px">🔍 查看快照清單</button>
+      <button class="btn btn-accent" onclick="(function(){window.__crmAutoSnapshot&&window.__crmAutoSnapshot();refreshSnapshots();})()" style="margin-bottom:10px;margin-left:6px">📸 立即快照</button>
+      <div id="snapshot-list" style="display:none">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead>
+            <tr style="color:var(--text-muted)">
+              <th style="text-align:left;padding:4px 8px">時間</th>
+              <th style="text-align:center;padding:4px 8px">節點數</th>
+              <th style="text-align:center;padding:4px 8px">還原</th>
+            </tr>
+          </thead>
+          <tbody id="snapshot-tbody"></tbody>
+        </table>
+        <div id="snapshot-empty" style="display:none;font-size:12px;color:var(--text-muted);padding:8px">尚無快照</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Students Page -->
+<div class="page" id="page-students">
+  <div class="students-page">
+    <div class="students-topbar">
+      <input class="field-input" id="students-search" placeholder="🔍 搜尋姓名、電話…"
+        oninput="studentSearch(this.value)" style="flex:1;max-width:260px;min-width:140px">
+      <span style="flex:1"></span>
+      <button class="stu-reminder-bell" onclick="showTodayReminders()" title="今日待跟進">
+        🔔<span id="students-reminder-count" class="reminder-badge"></span>
+      </button>
+      <button class="btn btn-accent" onclick="window.__crmOpenStudentModal?.()">＋ 新增學員</button>
+    </div>
+    <div class="students-list" id="students-list"></div>
+  </div>
+</div>
+
+<!-- Student Drawer -->
+<div class="student-drawer-overlay" id="student-drawer-overlay" onclick="closeStudentDrawer()"></div>
+<div class="student-drawer" id="student-drawer">
+  <div class="student-drawer-header">
+    <div class="student-drawer-title">學員資料</div>
+    <button class="panel-close" onclick="closeStudentDrawer()">✕</button>
+  </div>
+  <div class="student-drawer-body" id="student-drawer-body"></div>
+</div>
+
+<!-- Side Panel -->
+<div class="side-panel" id="side-panel">
+  <div class="panel-resize" id="panel-resize" title="拖曳調整寬度"></div>
+  <div class="panel-header">
+    <div class="panel-title" id="panel-title">聯繫人資料</div>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body" id="panel-body"></div>
+</div>
+
+<!-- Shortcuts Settings Modal -->
+<div class="sk-modal" id="sk-modal">
+  <div class="sk-box">
+    <div class="sk-header">
+      ⌨ 快捷鍵設定
+      <button class="panel-close" onclick="closeSkModal()">✕</button>
+    </div>
+    <div class="sk-body" id="sk-body"></div>
+    <div class="sk-footer">
+      <button class="btn" onclick="resetShortcuts()">恢復預設</button>
+      <button class="btn btn-accent" onclick="closeSkModal()">完成</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Modal -->
+<div class="modal-overlay" id="event-modal">
+  <div class="modal-box">
+    <div class="modal-title" id="event-modal-title">新增活動</div>
+    <div id="event-modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeEventModal()">取消</button>
+      <button class="btn btn-accent" onclick="saveEvent()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- 全域錯誤攔截：捕捉模組載入失敗 -->
+<script>
+(function(){
+  function showErr(msg) {
+    var d = document.getElementById('_boot_err');
+    if (!d) {
+      d = document.createElement('div');
+      d.id = '_boot_err';
+      d.style.cssText = 'position:fixed;top:54px;left:0;right:0;z-index:99999;background:#3a0000;color:#ff9090;padding:14px 16px;font-size:12px;font-family:monospace;white-space:pre-wrap;overflow:auto;max-height:50vh;border-bottom:2px solid #ff4444';
+      document.body && document.body.appendChild(d);
+    }
+    d.textContent += msg + '\n';
+  }
+  window.addEventListener('error', function(e) {
+    showErr('❌ ERROR: ' + (e.message||'') + '\n  at ' + (e.filename||'') + ':' + e.lineno);
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    showErr('❌ PROMISE: ' + (e.reason?.stack || e.reason || e));
+  });
+})();
+</script>
+
+<script type="module" src="src/main.js?v=46"></script>
+<script>
+  (function(){
+    try{
+      var isLocal = location.hostname==='localhost'||location.hostname==='127.0.0.1';
+      if('serviceWorker' in navigator && !isLocal && location.protocol==='https:'){
+        navigator.serviceWorker.register('./sw.js')
+          .then(function(r){
+            console.log('[SW] 已註冊', r.scope);
+            // 每次開啟立即主動檢查有無新版本（繞過 24h 快取節流）
+            r.update().catch(function(){});
+          })
+          .catch(function(e){console.warn('[SW] 註冊失敗', e)});
+
+        // SW 接管後強制 reload（加 bust 參數跳過快取）
+        var _reloading = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function(){
+          if(_reloading) return;
+          _reloading = true;
+          console.log('[SW] 新版本已接管，強制更新頁面');
+          var t = document.createElement('div');
+          t.textContent = '✅ 偵測到新版本，正在更新…';
+          t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,.4)';
+          document.body && document.body.appendChild(t);
+          setTimeout(function(){
+            var url = location.pathname + '?bust=' + Date.now();
+            window.location.replace(url);
+          }, 800);
+        });
+      }
+    }catch(e){}
+  })();
+
+  // Snapshot helpers
+  function refreshSnapshots() {
+    var list = document.getElementById('snapshot-list');
+    var tbody = document.getElementById('snapshot-tbody');
+    var empty = document.getElementById('snapshot-empty');
+    if (!list || !tbody) return;
+    list.style.display = 'block';
+    if (!window.__crmListSnapshots) { tbody.innerHTML = ''; if(empty) { empty.style.display='block'; empty.textContent='模組尚未載入，請稍後再試'; } return; }
+    var snaps = window.__crmListSnapshots();
+    tbody.innerHTML = '';
+    if (!snaps.length) {
+      if (empty) empty.style.display = 'block';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    snaps.forEach(function(s) {
+      var tr = document.createElement('tr');
+      tr.style.borderBottom = '1px solid var(--border)';
+      tr.innerHTML =
+        '<td style="padding:6px 8px">' + s.label + '</td>' +
+        '<td style="text-align:center;padding:6px 8px">' + s.nodeCount + '</td>' +
+        '<td style="text-align:center;padding:6px 8px">' +
+          '<button class="btn" style="font-size:11px;padding:2px 10px" onclick="doRestoreSnap(' + s.idx + ')">還原</button>' +
+        '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+  function doRestoreSnap(idx) {
+    if (!confirm('確定還原此快照？目前資料將被覆蓋，頁面會自動重新載入。')) return;
+    if (window.__crmRestoreSnapshot && window.__crmRestoreSnapshot(idx)) {
+      alert('✅ 還原完成，即將重新載入');
+      location.reload();
+    } else {
+      alert('❌ 還原失敗，快照不存在');
+    }
+  }
+
+  // Cloud sync token helpers
+  function saveCloudToken() {
+    var token = (document.getElementById('cloud-token-input') || {}).value || '';
+    window.__crmSetCloudToken && window.__crmSetCloudToken(token.trim());
+    var el = document.getElementById('cloud-sync-status');
+    if (el) el.textContent = token.trim() ? '✅ Token 已儲存' : '⚠️ 已清除 Token（同步停用）';
+  }
+  function testCloudConn() {
+    var el = document.getElementById('cloud-sync-status');
+    if (el) el.textContent = '⏳ 測試中…';
+    if (!window.__crmTestCloudConn) { if (el) el.textContent = '⚠️ 模組尚未載入'; return; }
+    window.__crmTestCloudConn().then(function(r) {
+      if (el) el.textContent = r.ok ? '✅ 連線成功' : '❌ ' + r.error;
+    });
+  }
+  // 載入時填入已存的 token（遮罩）
+  window.addEventListener('load', function() {
+    var t = window.__crmGetCloudToken && window.__crmGetCloudToken();
+    var inp = document.getElementById('cloud-token-input');
+    if (inp && t) inp.value = t;
+  });
+
+  // PWA install prompt
+  window._pwaInstallPrompt = null;
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    window._pwaInstallPrompt = e;
+    var btn = document.getElementById('pwa-install-btn');
+    if(btn) btn.style.display = 'inline-flex';
+  });
+  window.addEventListener('appinstalled', function(){
+    window._pwaInstallPrompt = null;
+    var btn = document.getElementById('pwa-install-btn');
+    if(btn) btn.style.display = 'none';
+    var status = document.getElementById('pwa-install-status');
+    if(status) status.textContent = '✅ 已安裝';
+  });
+</script>
+</body>
+</html>

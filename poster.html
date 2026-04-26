@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>海報生成器 — 房多多</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#1e1e1e;display:flex;flex-direction:column;align-items:center;
+  padding:32px 20px;gap:20px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;
+}
+.ctrl{
+  background:#252525;border:1px solid #333;border-radius:14px;
+  padding:18px 22px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;
+  max-width:820px;width:100%;
+}
+.cf{display:flex;flex-direction:column;gap:5px;flex:1;min-width:180px}
+.cf label{font-size:11px;font-weight:700;color:#777;letter-spacing:.06em;text-transform:uppercase}
+.cf input{
+  background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;
+  color:#eee;padding:9px 13px;font-size:14px;font-family:inherit;transition:border-color .15s;
+}
+.cf input:focus{outline:none;border-color:#7c3b3b}
+.btn-dl{
+  background:#7c3b3b;color:#fff;border:none;border-radius:9px;
+  padding:10px 26px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;
+  letter-spacing:.03em;transition:background .15s;
+}
+.btn-dl:hover{background:#5c2828}
+.btn-dl:disabled{opacity:.55;cursor:default}
+.hint{font-size:12px;color:#555;max-width:820px;width:100%;padding:0 4px}
+
+/* ── POSTER ── */
+.pw{box-shadow:0 16px 70px rgba(0,0,0,.7)}
+#poster{width:800px;background:#f7f3ed;position:relative;overflow:hidden}
+
+/* Diamond section */
+.dms{width:800px;height:508px;position:relative;overflow:hidden;background:#f7f3ed}
+.dm{position:absolute;overflow:hidden;transform:rotate(45deg)}
+.dm img{
+  position:absolute;width:148%;height:148%;
+  left:-24%;top:-24%;
+  transform:rotate(-45deg);object-fit:cover;
+}
+/* positions: left apt, top sky, center key, right agent */
+.d1{width:262px;height:262px;left:0;    top:122px}
+.d2{width:262px;height:262px;left:269px;top: -12px}
+.d3{width:182px;height:182px;left:309px;top:162px}
+.d4{width:262px;height:262px;left:538px;top:122px}
+/* X divider lines */
+.dx{position:absolute;background:#f7f3ed;z-index:20;pointer-events:none}
+.dx1{width:7px;height:900px;left:50%;top:-200px;transform:translateX(-50%) rotate(45deg)}
+.dx2{width:7px;height:900px;left:50%;top:-200px;transform:translateX(-50%) rotate(-45deg)}
+/* bottom fade */
+.dms::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:40px;
+  background:linear-gradient(transparent,#f7f3ed);z-index:25;pointer-events:none;
+}
+
+/* Text body */
+.pb{padding:28px 50px 34px;background:#f7f3ed}
+.tr{display:flex;align-items:center;gap:14px;margin-bottom:5px}
+.tbar{width:5px;height:48px;background:#7c3b3b;border-radius:2px;flex-shrink:0}
+.ptitle{
+  font-size:40px;font-weight:900;color:#3a1212;
+  font-family:'Noto Serif TC','STSong','宋体',Georgia,serif;
+  letter-spacing:2px;line-height:1.1;
+}
+.pen{font-size:10px;letter-spacing:3.5px;color:#7c3b3b;padding-left:19px;margin-bottom:8px;font-weight:500}
+.psub{font-size:17px;letter-spacing:6px;color:#444;padding-left:19px;margin-bottom:22px}
+.hr{border:none;height:1px;background:linear-gradient(to right,#bbb 55%,transparent);margin-bottom:18px}
+.ilist{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.irow{display:flex;align-items:baseline;font-size:18px;font-weight:700;color:#111;letter-spacing:1.5px}
+.ikey{color:#7c3b3b;width:42px;flex-shrink:0}
+.ipipe{color:#aaa;margin:0 10px;font-weight:400}
+.pfoot{font-size:15px;letter-spacing:3px;color:#555;text-align:center;font-weight:500;margin-top:16px}
+</style>
+</head>
+<body>
+
+<div class="ctrl">
+  <div class="cf">
+    <label>時間</label>
+    <input id="it" placeholder="4/10（四）1900-2100" oninput="sync()">
+  </div>
+  <div class="cf">
+    <label>地點</label>
+    <input id="il" placeholder="台中市北區育樂街90～92號（微笑之心）" oninput="sync()">
+  </div>
+  <button class="btn-dl" onclick="dl()">⬇ 下載海報 PNG</button>
+</div>
+<div class="hint">填入時間和地點後點下載，產出 2× 高解析 PNG（約 1600×2260px）。</div>
+
+<div class="pw">
+<div id="poster">
+  <div class="dms">
+    <div class="dm d1">
+      <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=85&fit=crop" crossorigin="anonymous" alt="">
+    </div>
+    <div class="dm d2">
+      <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=85&fit=crop" crossorigin="anonymous" alt="">
+    </div>
+    <div class="dm d3">
+      <img src="https://images.unsplash.com/photo-1582407947304-fd86f28320ad?w=400&q=85&fit=crop" crossorigin="anonymous" alt="">
+    </div>
+    <div class="dm d4">
+      <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&q=85&fit=crop" crossorigin="anonymous" alt="">
+    </div>
+    <div class="dx dx1"></div>
+    <div class="dx dx2"></div>
+  </div>
+
+  <div class="pb">
+    <div class="tr">
+      <div class="tbar"></div>
+      <div class="ptitle">揭露富人置產的秘密</div>
+    </div>
+    <div class="pen">UNVEILING THE SECRETS OF THE RICH'S PROPERTY INVESTMENTS</div>
+    <div class="psub">壓 縮 你 5 ～ 1 0 年 的 買 房 時 間</div>
+    <hr class="hr">
+    <div class="ilist">
+      <div class="irow">
+        <span class="ikey">時間</span><span class="ipipe">|</span>
+        <span id="tt">—</span>
+      </div>
+      <div class="irow">
+        <span class="ikey">地點</span><span class="ipipe">|</span>
+        <span id="tl">—</span>
+      </div>
+      <div class="irow">
+        <span class="ikey">費用</span><span class="ipipe">|</span>
+        <span>＄350／人　＄400／兩人</span>
+      </div>
+    </div>
+    <hr class="hr">
+    <div class="pfoot">打破思維 × 存房體質 × 不賠錢投資法</div>
+  </div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+// URL params pre-fill (from AI assistant link)
+const q=new URLSearchParams(location.search);
+if(q.get('time'))document.getElementById('it').value=q.get('time');
+if(q.get('loc')) document.getElementById('il').value=q.get('loc');
+sync();
+
+function sync(){
+  const t=document.getElementById('it').value;
+  const l=document.getElementById('il').value;
+  document.getElementById('tt').textContent=t||'—';
+  document.getElementById('tl').textContent=l||'—';
+}
+
+function dl(){
+  const btn=document.querySelector('.btn-dl');
+  btn.textContent='⏳ 生成中…';btn.disabled=true;
+  html2canvas(document.getElementById('poster'),{
+    scale:2,useCORS:true,allowTaint:false,
+    backgroundColor:'#f7f3ed',logging:false
+  }).then(c=>{
+    const slug=document.getElementById('it').value.replace(/[\/\s（）:：。，]/g,'').slice(0,12)||'海報';
+    const a=document.createElement('a');
+    a.download=`揭露富人置產_${slug}.png`;
+    a.href=c.toDataURL('image/png');a.click();
+  }).catch(e=>{
+    alert('截圖失敗，請確認圖片已載入完成後再試。\n'+e.message);
+  }).finally(()=>{
+    btn.textContent='⬇ 下載海報 PNG';btn.disabled=false;
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "fdd-crm",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "verify": "node check-imports.mjs",
+    "predeploy": "node check-imports.mjs",
+    "deploy": "node check-imports.mjs && npx wrangler pages deploy . --project-name fdd-crm --commit-dirty=true",
+    "css:purge": "purgecss --config purgecss.config.cjs",
+    "css:minify": "csso crm.purged.css -o crm.min.css --stat",
+    "css:build": "npm run css:purge && npm run css:minify",
+    "css:diff": "echo '原始:' && wc -c crm.css && echo '清理後:' && wc -c crm.purged.css && echo '壓縮後:' && wc -c crm.min.css"
+  },
+  "devDependencies": {
+    "csso-cli": "^4.0.2",
+    "purgecss": "^8.0.0"
+  }
+}

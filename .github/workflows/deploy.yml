@@ -1,0 +1,25 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bump SW cache version
+        run: |
+          CURRENT=$(grep "const CACHE = 'fdd-crm-v" sw.js | grep -o '[0-9]*' | tail -1)
+          NEXT=$((CURRENT + 1))
+          sed -i "s/fdd-crm-v${CURRENT}/fdd-crm-v${NEXT}/" sw.js
+          echo "SW cache: v${CURRENT} → v${NEXT}"
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy . --project-name fdd-crm --branch main

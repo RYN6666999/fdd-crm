@@ -31,6 +31,9 @@ export async function onRequestPost({ request, env }) {
     if (!VALID_RANKS.includes(String(rank).trim())) {
       return Response.json({ ok: false, error: '無效職級' }, { status: 400 });
     }
+    if (!/^[\u4e00-\u9fa5a-zA-Z0-9 ·．・]{1,30}$/.test(String(name).trim())) {
+      return Response.json({ ok: false, error: '姓名格式不合法' }, { status: 400 });
+    }
 
     const record = {
       name: String(name).trim().slice(0, 30),

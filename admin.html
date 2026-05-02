@@ -87,38 +87,67 @@
     document.getElementById('statToday').textContent  = todayCount;
     document.getElementById('statSenior').textContent = seniorCount;
 
+    const wrap = document.getElementById('tableWrap');
+    wrap.innerHTML = '';  // 清空(安全:純清空無注入)
+
     if (!records.length) {
-      document.getElementById('tableWrap').innerHTML = '<div class="empty">目前無登入記錄</div>';
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = '目前無登入記錄';
+      wrap.appendChild(empty);
       return;
     }
 
-    const rows = records.map(r => {
-      const ts = new Date(r.ts);
-      const tsStr = ts.toLocaleString('zh-TW', {
-        month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit',
-      });
-      const rankClass = `rank-${r.rank}`;
-      const rankLabel = RANK_LABEL[r.rank] || r.rank;
-      return `
-        <tr>
-          <td>${escHtml(r.name)}</td>
-          <td><span class="rank-badge ${rankClass}">${rankLabel}</span></td>
-          <td class="ts">${tsStr}</td>
-        </tr>`;
-    }).join('');
+    const table = document.createElement('table');
+    table.className = 'admin-table';
 
-    document.getElementById('tableWrap').innerHTML = `
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>姓名</th>
-            <th>職級</th>
-            <th>最後登入</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>`;
+    // thead
+    const thead = document.createElement('thead');
+    const trh = document.createElement('tr');
+    ['姓名', '職級', '最後登入'].forEach(h => {
+      const th = document.createElement('th');
+      th.textContent = h;
+      trh.appendChild(th);
+    });
+    thead.appendChild(trh);
+    table.appendChild(thead);
+
+    // tbody
+    const tbody = document.createElement('tbody');
+    records.forEach(r => {
+      const tr = document.createElement('tr');
+
+      // 姓名
+      const tdName = document.createElement('td');
+      tdName.textContent = r.name;  // textContent 自動 escape
+      tr.appendChild(tdName);
+
+      // 職級(whitelist + DOM)
+      const tdRank = document.createElement('td');
+      const span = document.createElement('span');
+      const isValidRank = Object.prototype.hasOwnProperty.call(RANK_LABEL, r.rank);
+      span.className = 'rank-badge ' + (isValidRank ? 'rank-' + r.rank : 'rank-unknown');
+      span.textContent = isValidRank ? RANK_LABEL[r.rank] : '未知';
+      tdRank.appendChild(span);
+      tr.appendChild(tdRank);
+
+      // 時間
+      const tdTs = document.createElement('td');
+      tdTs.className = 'ts';
+      try {
+        tdTs.textContent = new Date(r.ts).toLocaleString('zh-TW', {
+          month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit',
+        });
+      } catch {
+        tdTs.textContent = '-';
+      }
+      tr.appendChild(tdTs);
+
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
   }
 
   function showError(msg) {

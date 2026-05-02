@@ -243,6 +243,7 @@ export function dispatch(action) {
 - [ ] 刪除 `crm.js`（或保留 `.bak`）
 - [x] **openai provider 廢棄**：`getAiSettings()` 載入時若 `crm-ai-provider === 'openai'` 自動 fallback 至 `claude` 並寫回 localStorage；`getEndpoint` / `buildRequestBody` 中的 openai dead branch 改為拋錯（`openai provider has been removed; use claude instead`）
 - [x] **feat(security): baseline security headers** — `_headers` 加入 `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`（含 `payment=()`）, `Strict-Transport-Security`, `Content-Security-Policy`
+- [x] **fix(admin): XSS** — whitelist rank + DOM API render + backend input validation
 
 ### Phase 4 — Guards（選做）
 - [ ] 每個 feature 模組的 export 入口加 contract 驗證

@@ -30,6 +30,18 @@ export const onRequestPost = async ({ request, env }) => {
       const d = await res.json();
       return new Response(JSON.stringify(d), { status: res.status, headers: { 'Content-Type': 'application/json' } });
     }
+    if (provider === 'openrouter') {
+      const key = body.api_key || env.OPENROUTER_API_KEY;
+      if (!key) return new Response(JSON.stringify({ error: 'no_openrouter_key' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      const { api_key, ...cleanBody } = body;
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+        body: JSON.stringify(cleanBody)
+      });
+      const d = await res.json();
+      return new Response(JSON.stringify(d), { status: res.status, headers: { 'Content-Type': 'application/json' } });
+    }
     return new Response(JSON.stringify({ error: 'unsupported_provider' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
   } catch (e) {
     return new Response(JSON.stringify({ error: 'server_error', message: String(e) }), { status: 500, headers: { 'Content-Type': 'application/json' } });

@@ -23,11 +23,6 @@ export const AI_PROVIDERS = {
     ],
     keyPlaceholder: 'sk-ant-…',
   },
-  openai: {
-    label: 'GPT (OpenAI)',
-    models: ['o3', 'o3-mini', 'o1', 'o1-mini', 'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'],
-    keyPlaceholder: 'sk-…',
-  },
   gemini: {
     label: 'Gemini (Google)',
     models: [

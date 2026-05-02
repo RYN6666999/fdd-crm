@@ -5,6 +5,12 @@ function timingSafeEqual(a, b) {
   return diff === 0;
 }
 
+const ALLOWED_ORIGINS = ['https://fdd-crm.pages.dev', 'https://fdd.ryanliao.com'];
+function corsHeaders(origin = '') {
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return { 'Access-Control-Allow-Origin': allowed, 'Vary': 'Origin' };
+}
+
 async function authOk(request, env) {
   const token = (request.headers.get('Authorization') || '').replace('Bearer ', '').trim();
   if (!token) return false;
@@ -12,19 +18,20 @@ async function authOk(request, env) {
   return stored ? timingSafeEqual(token, stored) : false;
 }
 
-export const onRequestOptions = () => new Response(null, {
+export const onRequestOptions = ({ request }) => new Response(null, {
   status: 204,
   headers: {
-    'Access-Control-Allow-Origin': '*',
+    ...corsHeaders(request.headers.get('Origin') || ''),
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   },
 });
 
 export const onRequestPost = async ({ request, env }) => {
+  const origin = request.headers.get('Origin') || '';
   if (!await authOk(request, env)) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
-      status: 401, headers: { 'Content-Type': 'application/json' },
+      status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
     });
   }
   try {

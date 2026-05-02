@@ -2,7 +2,7 @@
  * GET  /api/memories  → listMemories
  * POST /api/memories  → createMemory
  */
-import { CORS, json, listMemories, createMemory } from './_mem-core.js';
+import { corsHeaders, json, listMemories, createMemory } from './_mem-core.js';
 
 function timingSafeEqual(a, b) {
   if (a.length !== b.length) return false;
@@ -22,8 +22,9 @@ export async function onRequest(context) {
   const { request, env } = context;
   const kv = env.CRM_MEMORIES;
 
-  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: { ...CORS, 'Access-Control-Allow-Headers': 'Content-Type, Authorization' } });
-  if (!await authOk(request, env)) return json({ error: 'unauthorized' }, 401);
+  const origin = request.headers.get('Origin') || '';
+  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(origin) });
+  if (!await authOk(request, env)) return json({ error: 'unauthorized' }, 401, origin);
   if (!kv) return json({ error: 'CRM_MEMORIES KV not bound' }, 500);
 
   try {

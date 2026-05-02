@@ -6,6 +6,13 @@
 
 const VALID_RANKS = ['director', 'asst_mgr', 'manager', 'shop_partner', 'shop_head'];
 
+const ALLOWED_ORIGINS = ['https://fdd-crm.pages.dev', 'https://fdd.ryanliao.com'];
+function corsHeaders(request) {
+  const origin = (request && request.headers.get('Origin')) || '';
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return { 'Access-Control-Allow-Origin': allowed, 'Vary': 'Origin' };
+}
+
 function timingSafeEqual(a, b) {
   if (a.length !== b.length) return false;
   let diff = 0;
@@ -38,7 +45,7 @@ export async function onRequestPost({ request, env }) {
     });
 
     return Response.json({ ok: true, record }, {
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: corsHeaders(request),
     });
   } catch (e) {
     return Response.json({ ok: false, error: String(e) }, { status: 500 });
@@ -67,7 +74,7 @@ export async function onRequestGet({ env, request }) {
     );
 
     return Response.json({ ok: true, records: filtered }, {
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: corsHeaders(request),
     });
   } catch (e) {
     return Response.json({ ok: false, error: String(e) }, { status: 500 });
@@ -75,12 +82,13 @@ export async function onRequestGet({ env, request }) {
 }
 
 // CORS preflight
-export async function onRequestOptions() {
+export async function onRequestOptions({ request }) {
   return new Response(null, {
+    status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      ...corsHeaders(request),
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   });
 }

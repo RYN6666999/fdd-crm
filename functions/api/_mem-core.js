@@ -3,16 +3,28 @@
  * Underscore prefix = not a Cloudflare Pages route
  */
 
-export const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+const ALLOWED_ORIGINS = [
+  'https://fdd-crm.pages.dev',
+  'https://fdd.ryanliao.com',
+];
 
-export function json(data, status = 200) {
+export function corsHeaders(origin = '') {
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Vary': 'Origin',
+  };
+}
+
+// Backwards-compat: static CORS kept for preflight callers that import it directly
+export const CORS = corsHeaders('https://fdd-crm.pages.dev');
+
+export function json(data, status = 200, origin = '') {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'Content-Type': 'application/json', ...CORS },
+    headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
   });
 }
 

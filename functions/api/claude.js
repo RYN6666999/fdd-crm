@@ -4,11 +4,14 @@
  * Wraps system prompt with cache_control for ~5x faster input processing.
  */
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+const ALLOWED_ORIGINS = ['https://fdd-crm.pages.dev', 'https://fdd.ryanliao.com'];
+function buildCORS(request) {
+  const origin = (request && request.headers.get('Origin')) || '';
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return { 'Access-Control-Allow-Origin': allowed, 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Vary': 'Origin' };
+}
+// kept for json() calls that don't have request context
+const CORS = buildCORS(null);
 
 function timingSafeEqual(a, b) {
   if (a.length !== b.length) return false;
@@ -24,12 +27,12 @@ async function authOk(request, env) {
   return stored ? timingSafeEqual(token, stored) : false;
 }
 
-export function onRequestOptions() {
-  return new Response(null, { status: 204, headers: CORS });
+export function onRequestOptions({ request }) {
+  return new Response(null, { status: 204, headers: buildCORS(request) });
 }
 
 export async function onRequestPost({ request, env }) {
-  if (!await authOk(request, env)) return json({ error: 'unauthorized' }, 401);
+  if (!await authOk(request, env)) return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json', ...buildCORS(request) } });
 
   const apiKey = env.ANTHROPIC_API_KEY;
   if (!apiKey) return json({ error: 'ANTHROPIC_API_KEY not set' }, 503);

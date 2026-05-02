@@ -5,7 +5,33 @@
  * FORBIDDEN: no DOM, no calculations, no business logic
  */
 
-import { STORE_KEYS, RANK_RATES } from '../contracts/types.js';
+import { STORE_KEYS, RANK_RATES, SCHEMA_VERSION } from '../contracts/types.js';
+
+const SCHEMA_LS_KEY = 'crm-schema-version';
+
+/**
+ * 啟動時呼叫一次。若 localStorage 的 schema 版本與程式碼不符，
+ * 清空所有業務資料並提示使用者重新登入（保留 profile 設定）。
+ */
+export function checkSchemaVersion() {
+  try {
+    const stored = parseInt(localStorage.getItem(SCHEMA_LS_KEY) || '0', 10);
+    if (stored !== SCHEMA_VERSION) {
+      const PRESERVE = ['crm-theme', 'crm-profile-rank', 'crm-obsidian-path'];
+      const preserved = {};
+      PRESERVE.forEach(k => { const v = localStorage.getItem(k); if (v) preserved[k] = v; });
+      localStorage.clear();
+      PRESERVE.forEach(k => { if (preserved[k]) localStorage.setItem(k, preserved[k]); });
+      localStorage.setItem(SCHEMA_LS_KEY, String(SCHEMA_VERSION));
+      console.warn(`[CRM] Schema migrated ${stored} → ${SCHEMA_VERSION}. Data cleared.`);
+      return false; // caller can show toast
+    }
+    return true;
+  } catch (e) {
+    console.warn('[CRM] checkSchemaVersion failed:', e);
+    return true;
+  }
+}
 
 // Re-export for convenience
 export const K = STORE_KEYS;

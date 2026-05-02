@@ -20,10 +20,9 @@ function timingSafeEqual(a, b) {
   return diff === 0;
 }
 
-async function authOk(request, env) {
+function authOk(request, env) {
   const token = (request.headers.get('Authorization') || '').replace('Bearer ', '').trim();
-  if (!token) return false;
-  const stored = await env.CRM_DATA.get('__api_token__');
+  const stored = env.CRM_API_TOKEN || '';
   return stored ? timingSafeEqual(token, stored) : false;
 }
 

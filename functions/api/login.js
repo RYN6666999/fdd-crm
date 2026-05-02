@@ -38,10 +38,10 @@ export async function onRequestPost({ request, env }) {
       ts: new Date().toISOString(),
     };
 
-    // key: user-{name} → 只保留每人最新一筆
-    const key = `user-${record.name}`;
+    // key: login-{name}-{ts} → 保留完整稽核軌跡（180 天）
+    const key = `login-${record.name}-${Date.now()}`;
     await env.FDD_LOGINS.put(key, JSON.stringify(record), {
-      expirationTtl: 60 * 60 * 24 * 30, // 30 天自動過期
+      expirationTtl: 60 * 60 * 24 * 180,
     });
 
     return Response.json({ ok: true, record }, {
@@ -61,7 +61,7 @@ export async function onRequestGet({ env, request }) {
   }
 
   try {
-    const list = await env.FDD_LOGINS.list({ prefix: 'user-' });
+    const list = await env.FDD_LOGINS.list({ prefix: 'login-' });
     const records = await Promise.all(
       list.keys.map(async ({ name: key }) => {
         const val = await env.FDD_LOGINS.get(key);

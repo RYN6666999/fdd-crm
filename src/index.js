@@ -16,7 +16,7 @@ export { validateStudent, validateContactEntry, studentDefaults, contactDefaults
 // ── Core ──────────────────────────────────────────────────────────────────────
 export { uid }                              from './core/uid.js';
 export { toast }                            from './core/toast.js';
-export { STORE, K, loadJSON, saveJSON }     from './core/store.js';
+export { STORE, K, loadJSON, saveJSON, checkSchemaVersion } from './core/store.js';
 export {
   dispatch,
   getNodes, getEvents, getTasks, getChatHistory,

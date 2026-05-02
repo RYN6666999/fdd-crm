@@ -11,10 +11,9 @@ function timingSafeEqual(a, b) {
   return diff === 0;
 }
 
-async function authOk(request, env) {
+function authOk(request, env) {
   const token = (request.headers.get('Authorization') || '').replace('Bearer ', '').trim();
-  if (!token) return false;
-  const stored = await env.CRM_DATA.get('__api_token__');
+  const stored = env.CRM_API_TOKEN || '';
   return stored ? timingSafeEqual(token, stored) : false;
 }
 
@@ -24,7 +23,7 @@ export async function onRequest(context) {
 
   const origin = request.headers.get('Origin') || '';
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(origin) });
-  if (!await authOk(request, env)) return json({ error: 'unauthorized' }, 401, origin);
+  if (!authOk(request, env)) return json({ error: 'unauthorized' }, 401, origin);
   if (!kv) return json({ error: 'CRM_MEMORIES KV not bound' }, 500);
 
   try {

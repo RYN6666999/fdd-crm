@@ -53,6 +53,9 @@ export const STUDENT_FIXED_TAGS = [
 export const CONTACT_METHODS  = ['電話', 'Line', '面談', '視訊'];
 export const CONTACT_RESULTS  = ['未接聽', '接通無進展', '有興趣', '約定下次', '里程碑推進', '其他'];
 
+// localStorage schema 版本（欄位結構有 breaking change 時 bump 此值）
+export const SCHEMA_VERSION = 1;
+
 // localStorage key map（單一真理源，STORE 直接 import）
 export const STORE_KEYS = {
   nodes:               'crm-v3',

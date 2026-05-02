@@ -3,19 +3,25 @@
    眼睛＋手腳＋記憶，按需載入
 ═══════════════════════════════════════ */
 
-const CORS = {
-  'Access-Control-Allow-Origin':  '*',
-  'Access-Control-Allow-Methods': 'POST,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-};
+const ALLOWED_ORIGINS = ['https://fdd-crm.pages.dev', 'https://fdd.ryanliao.com'];
+function buildCORS(origin = '') {
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return { 'Access-Control-Allow-Origin': allowed, 'Access-Control-Allow-Methods': 'POST,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type,Authorization', 'Vary': 'Origin' };
+}
 
 // ── 基礎工具 ───────────────────────────────────────────────────────────────────
 
-async function authOk(request, env) {
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+function authOk(request, env) {
   const token = (request.headers.get('Authorization') || '').replace('Bearer ', '').trim();
-  if (!token) return false;
-  const stored = await env.CRM_DATA.get('__api_token__');
-  return stored && stored === token;
+  const stored = env.CRM_API_TOKEN || '';
+  return stored ? timingSafeEqual(token, stored) : false;
 }
 
 async function kvGet(env, key) {
@@ -630,19 +636,25 @@ async function callOpenRouterWithTools({ apiKey, model, systemPrompt, messages, 
 
 // ── Handler ───────────────────────────────────────────────────────────────────
 
-export async function onRequestOptions() { return new Response(null, { status:204, headers:CORS }); }
+export async function onRequestOptions({ request }) {
+  const origin = request.headers.get('Origin') || '';
+  return new Response(null, { status:204, headers:buildCORS(origin) });
+}
 
 export async function onRequestPost({ request, env }) {
-  if (!await authOk(request, env))
-    return Response.json({ ok:false, error:'未授權' }, { status:401, headers:CORS });
+  const origin = request.headers.get('Origin') || '';
+  const cors = buildCORS(origin);
+
+  if (!authOk(request, env))
+    return Response.json({ ok:false, error:'未授權' }, { status:401, headers:cors });
 
   let body;
   try { body = await request.json(); } catch {
-    return Response.json({ ok:false, error:'無效 JSON' }, { status:400, headers:CORS });
+    return Response.json({ ok:false, error:'無效 JSON' }, { status:400, headers:cors });
   }
 
   const { message, apiKey, provider='anthropic', model, persona } = body;
-  if (!message) return Response.json({ ok:false, error:'message 必填' }, { status:400, headers:CORS });
+  if (!message) return Response.json({ ok:false, error:'message 必填' }, { status:400, headers:cors });
 
   // 跨對話記憶：每次對話開始先查 gbrain，補回歷史脈絡
   const memResults = await gbrainSearch(env, message, 3);
@@ -656,18 +668,18 @@ export async function onRequestPost({ request, env }) {
   let result;
   try {
     if (provider==='anthropic'||provider==='claude') {
-      if (!apiKey) return Response.json({ ok:false, error:'apiKey 必填' }, { status:400, headers:CORS });
+      if (!apiKey) return Response.json({ ok:false, error:'apiKey 必填' }, { status:400, headers:cors });
       result = await callAnthropicWithTools({ apiKey, model, systemPrompt, messages:initMessages, env });
     } else if (provider==='openrouter') {
       const key = apiKey || env?.OPENROUTER_API_KEY;
-      if (!key) return Response.json({ ok:false, error:'OPENROUTER_API_KEY not set' }, { status:400, headers:CORS });
+      if (!key) return Response.json({ ok:false, error:'OPENROUTER_API_KEY not set' }, { status:400, headers:cors });
       result = await callOpenRouterWithTools({ apiKey:key, model:model||'z-ai/glm-4.6', systemPrompt, messages:initMessages, env });
     } else {
-      return Response.json({ ok:false, error:`不支援的 provider：${provider}` }, { status:400, headers:CORS });
+      return Response.json({ ok:false, error:`不支援的 provider：${provider}` }, { status:400, headers:cors });
     }
   } catch(e) {
-    return Response.json({ ok:false, error:e.message }, { status:502, headers:CORS });
+    return Response.json({ ok:false, error:e.message }, { status:502, headers:cors });
   }
 
-  return Response.json({ ok:true, reply:result.reply, usage:result.usage||null }, { headers:CORS });
+  return Response.json({ ok:true, reply:result.reply, usage:result.usage||null }, { headers:cors });
 }

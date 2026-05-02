@@ -23,7 +23,7 @@ while ((m = importRe.exec(mainSrc)) !== null) {
   catch { errors.push('FILE NOT FOUND: ' + absPath); continue; }
 
   for (const name of names) {
-    if (!src.match(new RegExp('export[^{]*\\b' + name + '\\b'))) {
+    if (!src.match(new RegExp('export[^;]*\\b' + name + '\\b'))) {
       errors.push('❌ import missing export: ' + name + '  ←  ' + relPath);
     } else {
       passed++;
@@ -64,6 +64,30 @@ if (!htmlSrc.includes('id="settings-theme-grid"')) {
   errors.push('❌ index.html 缺少 #settings-theme-grid');
 } else {
   passed++;
+}
+
+// ── 6. src/index.js re-export 驗證 ──────────────────────────────────────────
+const indexSrc = readFileSync('./src/index.js', 'utf8');
+const indexExportRe = /export\s*\{([^}]+)\}\s*from\s*['"]([^'"]+)['"]/g;
+let im;
+while ((im = indexExportRe.exec(indexSrc)) !== null) {
+  const names = im[1].split(',')
+    .map(n => n.trim().replace(/\s+as\s+\w+/, '').trim())
+    .filter(Boolean);
+  const relPath = im[2];
+  if (!relPath.startsWith('./') && !relPath.startsWith('../')) continue;
+  const absPath = './src/' + relPath.replace(/^\.\//, '') +
+    (relPath.endsWith('.js') ? '' : '.js');
+  let src;
+  try { src = readFileSync(absPath, 'utf8'); }
+  catch { errors.push('FILE NOT FOUND (index.js → ' + relPath + '): ' + absPath); continue; }
+  for (const name of names) {
+    if (!src.match(new RegExp('export[^;]*\\b' + name + '\\b'))) {
+      errors.push('❌ index.js re-export missing: ' + name + '  ←  ' + relPath);
+    } else {
+      passed++;
+    }
+  }
 }
 
 // ── 結果 ──────────────────────────────────────────────────────────────────────

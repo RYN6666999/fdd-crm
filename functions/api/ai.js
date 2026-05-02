@@ -1,4 +1,32 @@
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+async function authOk(request, env) {
+  const token = (request.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+  if (!token) return false;
+  const stored = await env.CRM_DATA.get('__api_token__');
+  return stored ? timingSafeEqual(token, stored) : false;
+}
+
+export const onRequestOptions = () => new Response(null, {
+  status: 204,
+  headers: {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  },
+});
+
 export const onRequestPost = async ({ request, env }) => {
+  if (!await authOk(request, env)) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401, headers: { 'Content-Type': 'application/json' },
+    });
+  }
   try {
     const { provider, body } = await request.json();
     if (!provider || !body) return new Response(JSON.stringify({ error: 'bad_request' }), { status: 400, headers: { 'Content-Type': 'application/json' } });

@@ -1,5 +1,14 @@
 # Cloudflare Pages — HTTP Header Rules
 
+# ── 全站安全性 Headers ────────────────────────────────────
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.anthropic.com https://openrouter.ai https://generativelanguage.googleapis.com https://openai.com; img-src 'self' data: blob:; font-src 'self' data:
+
 # sw.js 永遠不快取，確保每次開啟都能偵測到新版本
 /sw.js
   Cache-Control: no-store, no-cache, must-revalidate

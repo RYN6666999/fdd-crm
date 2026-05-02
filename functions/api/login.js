@@ -4,6 +4,15 @@
    GET   → 列出所有登入記錄（admin 用）
 ═══════════════════════════════════════ */
 
+const VALID_RANKS = ['director', 'asst_mgr', 'manager', 'shop_partner', 'shop_head'];
+
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 export async function onRequestPost({ request, env }) {
   try {
     const body = await request.json();
@@ -11,6 +20,9 @@ export async function onRequestPost({ request, env }) {
 
     if (!name || !rank) {
       return Response.json({ ok: false, error: '缺少姓名或職級' }, { status: 400 });
+    }
+    if (!VALID_RANKS.includes(String(rank).trim())) {
+      return Response.json({ ok: false, error: '無效職級' }, { status: 400 });
     }
 
     const record = {
@@ -34,9 +46,10 @@ export async function onRequestPost({ request, env }) {
 }
 
 export async function onRequestGet({ env, request }) {
-  // 簡易 admin 驗證：需帶 ?token=fdd-admin
-  const url = new URL(request.url);
-  if (url.searchParams.get('token') !== 'fdd-admin') {
+  // Admin 驗證：Authorization Bearer header，對比 env.ADMIN_TOKEN
+  const token = (request.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+  const adminToken = env.ADMIN_TOKEN || '';
+  if (!adminToken || !timingSafeEqual(token, adminToken)) {
     return Response.json({ ok: false, error: '未授權' }, { status: 401 });
   }
 

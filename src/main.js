@@ -36,8 +36,9 @@ import {
 
 // ── Events ────────────────────────────────────────────────────────────────────
 import {
-  renderCalendar, openEventModal, closeEventModal, saveEvent, deleteEvent,
+  renderCalendar, renderEvents, openEventModal, closeEventModal, saveEvent, deleteEvent,
   calPrev, calNext, calGoToday, setCMD as evSetCMD,
+  switchCalView, editGcalUrl,
 } from './features/events/index.js';
 
 // ── AI ────────────────────────────────────────────────────────────────────────
@@ -121,7 +122,7 @@ export function navigate(page) {
 
   switch (pageId) {
     case 'crm':      setCrmView('tree'); break;
-    case 'events':   renderCalendar(); break;
+    case 'events':   renderEvents(); break;
     case 'daily':    renderDailyPage(); renderMonthlyTargetInput(); break;
     case 'docs':     renderDocsPage(); break;
     case 'sales':    renderSalesPage(); break;
@@ -203,6 +204,8 @@ function registerWindowBridge() {
   window.__crmCloseEventModal = () => closeEventModal();
   window.__crmSaveEvent       = () => saveEvent();
   window.__crmDeleteEvent     = id => deleteEvent(id);
+  window.__crmSwitchCalView   = which => switchCalView(which);
+  window.__crmEditGcalUrl     = () => editGcalUrl();
 
   window.__crmOpenDocModal    = id => openDocModal(id);
   window.__crmCloseDocModal   = () => closeDocModal();

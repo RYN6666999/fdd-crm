@@ -28,8 +28,87 @@ export function calPrev()    { _calMonth--; if (_calMonth < 0)  { _calMonth = 11
 export function calNext()    { _calMonth++; if (_calMonth > 11) { _calMonth = 0;  _calYear++; } renderCalendar(); }
 export function calGoToday() { const d = new Date(); _calYear = d.getFullYear(); _calMonth = d.getMonth(); renderCalendar(); }
 
-// Alias
-export const renderEvents = () => renderCalendar();
+// ── GCal embed view ──────────────────────────────────────────────────────────
+const LS_GCAL_URL  = 'crm-gcal-url';
+const LS_CAL_VIEW  = 'crm-cal-view';
+
+function isSafeGcalUrl(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'https:' && (
+      u.hostname === 'calendar.google.com' ||
+      u.hostname.endsWith('.google.com')
+    );
+  } catch { return false; }
+}
+
+export function switchCalView(which) {
+  const url = localStorage.getItem(LS_GCAL_URL) || '';
+  const want = which === 'gcal' ? 'gcal' : 'crm';
+  localStorage.setItem(LS_CAL_VIEW, want);
+
+  const gPane  = document.getElementById('cal-pane-gcal');
+  const cPane  = document.getElementById('cal-pane-crm');
+  const gFrame = document.getElementById('cal-gcal-iframe');
+  const gEmpty = document.getElementById('cal-gcal-empty');
+  const tabG   = document.getElementById('cal-tab-gcal');
+  const tabC   = document.getElementById('cal-tab-crm');
+
+  if (!gPane || !cPane) return;
+
+  if (want === 'gcal') {
+    gPane.style.display = 'block';
+    cPane.style.display = 'none';
+    tabG?.classList.add('btn-accent');
+    tabC?.classList.remove('btn-accent');
+    if (url && isSafeGcalUrl(url)) {
+      if (gFrame.src !== url) gFrame.src = url;
+      gFrame.style.display = 'block';
+      if (gEmpty) gEmpty.style.display = 'none';
+    } else {
+      gFrame.style.display = 'none';
+      if (gEmpty) gEmpty.style.display = 'block';
+    }
+  } else {
+    gPane.style.display = 'none';
+    cPane.style.display = 'block';
+    tabC?.classList.add('btn-accent');
+    tabG?.classList.remove('btn-accent');
+    renderCalendar();
+  }
+}
+
+export function editGcalUrl() {
+  const cur = localStorage.getItem(LS_GCAL_URL) || '';
+  const next = prompt(
+    '貼上 Google Calendar 嵌入網址 (iframe 的 src):\n\n' +
+    'GCal → 設定 → 我的日曆 → 整合日曆 → 嵌入程式碼\n' +
+    '只支援 https://calendar.google.com/...\n\n' +
+    '(留空可清除)',
+    cur
+  );
+  if (next === null) return;
+  const trimmed = next.trim();
+  if (trimmed === '') {
+    localStorage.removeItem(LS_GCAL_URL);
+    toast('已清除個人日曆網址');
+  } else if (!isSafeGcalUrl(trimmed)) {
+    toast('網址格式不正確（只接受 calendar.google.com）');
+    return;
+  } else {
+    localStorage.setItem(LS_GCAL_URL, trimmed);
+    toast('已更新個人日曆');
+  }
+  switchCalView(localStorage.getItem(LS_CAL_VIEW) || 'gcal');
+}
+
+// Alias — 進入頁面時呼叫；自動還原上次選的視圖
+export const renderEvents = () => {
+  const url  = localStorage.getItem(LS_GCAL_URL) || '';
+  const last = localStorage.getItem(LS_CAL_VIEW);
+  const view = last || (url ? 'gcal' : 'crm');
+  switchCalView(view);
+};
 
 // ── renderCalendar ────────────────────────────────────────────────────────────
 

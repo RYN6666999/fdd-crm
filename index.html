@@ -151,26 +151,43 @@
 
 <!-- Events Page -->
 <div class="page" id="page-events">
-  <div class="cal-wrapper">
-    <div class="cal-header">
-      <div class="cal-nav">
-        <button class="cal-nav-btn" onclick="calPrev()">‹</button>
-        <div class="cal-month-label" id="cal-month-label">—</div>
-        <button class="cal-nav-btn" onclick="calNext()">›</button>
-      </div>
-      <button class="cal-today-btn" onclick="calGoToday()">今天</button>
-      <div class="cal-header-actions">
-        <button class="btn btn-accent" onclick="openEventModal(null,calTodayStr())">＋ 新增活動</button>
-      </div>
+  <div style="display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);align-items:center">
+    <button id="cal-tab-gcal" class="btn btn-sm" onclick="window.__crmSwitchCalView?.('gcal')">📅 個人日曆</button>
+    <button id="cal-tab-crm" class="btn btn-sm" onclick="window.__crmSwitchCalView?.('crm')">🎯 業務活動</button>
+    <button class="btn btn-sm" onclick="window.__crmEditGcalUrl?.()" style="margin-left:auto" title="設定個人日曆嵌入網址">⚙️</button>
+  </div>
+
+  <div id="cal-pane-gcal" style="display:none;height:calc(100vh - 110px)">
+    <iframe id="cal-gcal-iframe" src="about:blank" style="width:100%;height:100%;border:0;display:none"></iframe>
+    <div id="cal-gcal-empty" style="padding:32px;text-align:center;color:var(--text-muted);line-height:1.7">
+      尚未設定個人日曆<br>
+      點右上角 ⚙️ 貼上 Google Calendar 嵌入網址<br>
+      <small>(GCal → 設定 → 我的日曆 → 整合日曆 → 嵌入程式碼，複製 src 的網址)</small>
     </div>
-    <div class="cal-body">
-      <div class="cal-weekdays">
-        <div class="cal-weekday">日</div><div class="cal-weekday">一</div>
-        <div class="cal-weekday">二</div><div class="cal-weekday">三</div>
-        <div class="cal-weekday">四</div><div class="cal-weekday">五</div>
-        <div class="cal-weekday">六</div>
+  </div>
+
+  <div id="cal-pane-crm" style="display:none">
+    <div class="cal-wrapper">
+      <div class="cal-header">
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+          <div class="cal-month-label" id="cal-month-label">—</div>
+          <button class="cal-nav-btn" onclick="calNext()">›</button>
+        </div>
+        <button class="cal-today-btn" onclick="calGoToday()">今天</button>
+        <div class="cal-header-actions">
+          <button class="btn btn-accent" onclick="openEventModal(null,calTodayStr())">＋ 新增活動</button>
+        </div>
       </div>
-      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-body">
+        <div class="cal-weekdays">
+          <div class="cal-weekday">日</div><div class="cal-weekday">一</div>
+          <div class="cal-weekday">二</div><div class="cal-weekday">三</div>
+          <div class="cal-weekday">四</div><div class="cal-weekday">五</div>
+          <div class="cal-weekday">六</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
     </div>
   </div>
 </div>

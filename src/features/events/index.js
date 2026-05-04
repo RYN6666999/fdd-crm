@@ -12,7 +12,7 @@ import { uid } from '../../core/uid.js';
 let _CMD = null;
 export function setCMD(cmd) { _CMD = cmd; }
 
-const EV_TYPES = ['分享會', '專場', '訓練', '二對一'];
+const EV_TYPES = ['分享會', '專場', '訓練', '二對一', '面試', '其他'];
 let _editingEventId = null;
 let _calYear  = new Date().getFullYear();
 let _calMonth = new Date().getMonth(); // 0-based

@@ -1,0 +1,31 @@
+#!/bin/bash
+# 自動 bump SW cache 版本：當任何 JS/CSS/HTML 進入 commit 時，
+# 強制 PWA 在下次開啟時 activate 新 SW、reload 取得最新內容。
+# 不需要 AI 或人類記得手動 bump。
+
+set -e
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM \
+  | grep -E '\.(js|css|html)$' \
+  | grep -vE '^(sw\.js|.*\.min\..*|.*\.(backup|bak)$|node_modules/.*)' \
+  || true)
+
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+
+SW_FILE="sw.js"
+if [ ! -f "$SW_FILE" ]; then
+  exit 0
+fi
+
+CURRENT=$(grep "const CACHE = 'fdd-crm-v" "$SW_FILE" | grep -o '[0-9]*' | tail -1)
+if [ -z "$CURRENT" ]; then
+  echo "⚠️  pre-commit: 找不到 SW 版本號，跳過 bump"
+  exit 0
+fi
+
+NEXT=$((CURRENT + 1))
+sed -i '' "s/fdd-crm-v${CURRENT}/fdd-crm-v${NEXT}/" "$SW_FILE"
+git add "$SW_FILE"
+echo "✓ SW cache auto-bumped: v${CURRENT} → v${NEXT} (因為改了 $(echo "$STAGED" | wc -l | tr -d ' ') 個 client 檔)"

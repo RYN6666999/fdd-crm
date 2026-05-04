@@ -157,7 +157,10 @@ function toOpenAITools(crmTools) {
 }
 
 function buildRequestBody(provider, model, systemPrompt, messages, stream = false) {
-  if (provider === 'openai' || provider === 'openrouter' || provider === 'custom' || provider === 'grok') {
+  if (provider === 'openai') {
+    throw new Error('openai provider has been removed; use claude instead');
+  }
+  if (provider === 'openrouter' || provider === 'custom' || provider === 'grok') {
     return {
       model,
       messages: [{ role: 'system', content: systemPrompt }, ...messages],
@@ -186,7 +189,7 @@ function buildRequestBody(provider, model, systemPrompt, messages, stream = fals
 }
 
 function getEndpoint(provider, model, customEndpoint) {
-  if (provider === 'openai') return 'https://api.openai.com/v1/chat/completions';
+  if (provider === 'openai') throw new Error('openai provider has been removed; use claude instead');
   if (provider === 'grok')   return 'https://api.x.ai/v1/chat/completions';
   if (provider === 'gemini') return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
   if (provider === 'openrouter') return customEndpoint || 'https://openrouter.ai/api/v1/chat/completions';

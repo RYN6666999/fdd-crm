@@ -97,25 +97,14 @@ const TOOLS = [
       },
     },
   },
-  {
-    name: 'crm_set_token',
-    description: '（初始化用）設定 API token，之後所有請求都需要此 token。只在 token 尚未設定時有效。',
-    inputSchema: {
-      type: 'object',
-      required: ['token'],
-      properties: {
-        token: { type: 'string', description: '自訂 API token（建議 32 字元以上亂數字串）' },
-      },
-    },
-  },
 ];
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
-async function authOk(request, env) {
+function authOk(request, env) {
   const token = (request.headers.get('Authorization') || '').replace('Bearer ', '').trim();
   if (!token) return false;
-  const stored = await env.CRM_DATA.get('__api_token__');
+  const stored = env.CRM_API_TOKEN || '';
   return stored && stored === token;
 }
 
@@ -217,13 +206,6 @@ async function handle_crm_get_sales(args, env) {
   return { count: result.length, sales: result.slice(0, args.limit || 100) };
 }
 
-async function handle_crm_set_token(args, env) {
-  const existing = await env.CRM_DATA.get('__api_token__');
-  if (existing) return { error: 'Token 已設定，請在 CRM 設定頁修改' };
-  if (!args.token || args.token.length < 8) return { error: 'Token 長度不足（至少 8 字元）' };
-  await env.CRM_DATA.put('__api_token__', args.token);
-  return { ok: true, message: 'Token 已設定，請保存此 token 用於後續請求' };
-}
 
 const HANDLERS = {
   crm_list_contacts:  handle_crm_list_contacts,
@@ -233,7 +215,6 @@ const HANDLERS = {
   crm_add_event:      handle_crm_add_event,
   crm_get_daily_report: handle_crm_get_daily_report,
   crm_get_sales:      handle_crm_get_sales,
-  crm_set_token:      handle_crm_set_token,
 };
 
 // ── MCP Router ────────────────────────────────────────────────────────────────
@@ -259,8 +240,7 @@ async function routeMCP(rpc, request, env) {
   }
 
   if (method === 'tools/call') {
-    // crm_set_token 不需要 auth
-    if (params?.name !== 'crm_set_token' && !await authOk(request, env)) {
+    if (!authOk(request, env)) {
       return err(-32001, '未授權：需要 Authorization: Bearer <token>');
     }
     const handler = HANDLERS[params?.name];

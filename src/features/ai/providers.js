@@ -60,8 +60,14 @@ export const AI_PROVIDERS = {
 
 /** @returns {{ provider, model, apiKey, endpoint }} */
 export function getAiSettings() {
+  let provider = localStorage.getItem(K.aiProvider) || 'openrouter';
+  if (provider === 'openai') {
+    console.warn('[ai] openai provider deprecated, falling back to claude');
+    provider = 'claude';
+    localStorage.setItem(K.aiProvider, 'claude');
+  }
   return {
-    provider: localStorage.getItem(K.aiProvider)  || 'openrouter',
+    provider,
     model:    localStorage.getItem(K.aiModel)     || 'deepseek/deepseek-chat',
     apiKey:   localStorage.getItem(K.apiKey)      || '',
     endpoint: localStorage.getItem(K.aiEndpoint)  || 'https://openrouter.ai/api/v1/chat/completions',

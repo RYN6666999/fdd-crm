@@ -9,10 +9,10 @@
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,PUT,POST,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type,Authorization' };
 const ALLOWED_KEYS = new Set(['nodes','events','sales','daily-reports','monthly-goals','monthly-sales-targets','docs','students']);
 
-async function authOk(request, env) {
+function authOk(request, env) {
   const token = (request.headers.get('Authorization') || '').replace('Bearer ', '').trim();
   if (!token) return false;
-  const stored = await env.CRM_DATA.get('__api_token__');
+  const stored = env.CRM_API_TOKEN || '';
   return stored && stored === token;
 }
 

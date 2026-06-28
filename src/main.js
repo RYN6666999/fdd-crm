@@ -6,7 +6,7 @@
 
 // ── Core ──────────────────────────────────────────────────────────────────────
 import { STORE } from './core/store.js';
-import { dispatch, getNodes, gatherSubtree, isHidden } from './core/state.js';
+import { dispatch, getNodes, getDailyReports, gatherSubtree, isHidden } from './core/state.js';
 import { toast } from './core/toast.js';
 import { captureError, installGlobalCapture, loadLog, clearLog } from './core/error-monitor.js';
 import { undoLast, pushUndo } from './core/undo.js';

@@ -783,6 +783,12 @@ select.field-input option{background:var(--surface2)}
 .daily-col{display:flex;flex-direction:column;gap:14px}
 @media(max-width:860px){.daily-two-col{grid-template-columns:1fr}}
 
+/* ── Daily quick mode ──────────────────────────────────────── */
+.daily-quick-mode .daily-col:first-child .daily-section:nth-child(2),
+.daily-quick-mode .daily-col:last-child  .daily-section:nth-child(3),
+.daily-quick-mode .daily-col:last-child  .daily-section:nth-child(4) { display:none }
+#daily-mode-toggle.active { background:var(--accent);color:#fff;border-color:var(--accent) }
+
 /* Schedule grid */
 .daily-sched-grid{display:grid;grid-template-columns:44px 1fr 1fr 1fr;gap:2px}
 .dsgh{font-size:10px;font-weight:700;color:var(--text-muted);padding:3px 5px;text-align:center}

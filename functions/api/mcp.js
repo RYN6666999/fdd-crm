@@ -118,6 +118,14 @@ async function kvPut(env, key, val) {
   await env.CRM_DATA.put(key, JSON.stringify(val));
 }
 
+/** 解開 KV 中 { data: [...] } 包裝，確保回傳陣列 */
+function unwrapArr(v) {
+  if (!v) return [];
+  if (Array.isArray(v)) return v;
+  if (Array.isArray(v.data)) return v.data;
+  return [];
+}
+
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
@@ -129,9 +137,8 @@ function today() {
 // ── Tool handlers ─────────────────────────────────────────────────────────────
 
 async function handle_crm_list_contacts(args, env) {
-  const nodes = (await kvGet(env, 'nodes')) || [];
-  const all = Array.isArray(nodes) ? nodes : Object.values(nodes);
-  let result = all.filter(n => n.nodeType !== 'note');
+  const nodes = unwrapArr(await kvGet(env, 'nodes'));
+  let result = nodes.filter(n => n.nodeType !== 'note');
   if (args.status) result = result.filter(n => n.status === args.status);
   if (args.name)   result = result.filter(n => n.name?.includes(args.name));
   const limit = args.limit || 50;
@@ -144,33 +151,31 @@ async function handle_crm_list_contacts(args, env) {
 }
 
 async function handle_crm_get_contact(args, env) {
-  const nodes = (await kvGet(env, 'nodes')) || [];
-  const all = Array.isArray(nodes) ? nodes : Object.values(nodes);
+  const nodes = unwrapArr(await kvGet(env, 'nodes'));
   let found = null;
-  if (args.id)   found = all.find(n => n.id === args.id);
-  if (!found && args.name) found = all.find(n => n.name === args.name) || all.find(n => n.name?.includes(args.name));
+  if (args.id)   found = nodes.find(n => n.id === args.id);
+  if (!found && args.name) found = nodes.find(n => n.name === args.name) || nodes.find(n => n.name?.includes(args.name));
   if (!found) return { error: '找不到聯絡人' };
   return found;
 }
 
 async function handle_crm_update_contact(args, env) {
-  const nodes = (await kvGet(env, 'nodes')) || [];
-  const all = Array.isArray(nodes) ? nodes : Object.values(nodes);
-  const idx = all.findIndex(n => n.id === args.id);
+  const nodes = unwrapArr(await kvGet(env, 'nodes'));
+  const idx = nodes.findIndex(n => n.id === args.id);
   if (idx === -1) return { error: '找不到聯絡人' };
-  const node = { ...all[idx], info: { ...(all[idx].info || {}) } };
+  const node = { ...nodes[idx], info: { ...(nodes[idx].info || {}) } };
   for (const [k, v] of Object.entries(args.fields || {})) {
     if (k.startsWith('info.')) node.info[k.slice(5)] = v;
     else node[k] = v;
   }
   node.updatedAt = Date.now();
-  all[idx] = node;
-  await kvPut(env, 'nodes', all);
+  nodes[idx] = node;
+  await kvPut(env, 'nodes', nodes);
   return { ok: true, updated: node.name };
 }
 
 async function handle_crm_list_events(args, env) {
-  const events = (await kvGet(env, 'events')) || [];
+  const events = unwrapArr(await kvGet(env, 'events'));
   let result = [...events];
   if (args.from) result = result.filter(e => e.date >= args.from);
   if (args.to)   result = result.filter(e => e.date <= args.to);
@@ -179,7 +184,7 @@ async function handle_crm_list_events(args, env) {
 }
 
 async function handle_crm_add_event(args, env) {
-  const events = (await kvGet(env, 'events')) || [];
+  const events = unwrapArr(await kvGet(env, 'events'));
   const ev = {
     id: uid(), title: args.title, date: args.date,
     time: args.time || '', endTime: args.endTime || '',
@@ -199,7 +204,7 @@ async function handle_crm_get_daily_report(args, env) {
 }
 
 async function handle_crm_get_sales(args, env) {
-  const sales = (await kvGet(env, 'sales')) || [];
+  const sales = unwrapArr(await kvGet(env, 'sales'));
   let result = [...sales];
   if (args.month) result = result.filter(s => (s.date || s.createdAt?.toString().slice(0, 7)) === args.month);
   result.sort((a, b) => (b.date || '').localeCompare(a.date || ''));

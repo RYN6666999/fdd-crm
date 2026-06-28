@@ -1,7 +1,10 @@
 # Hermes × CRM 對齊提示詞
 
-> 版本：v1.0 · 2026-04-17
+> 版本：v1.1 · 2026-06-28
 > 適用：任何需要操作 FDD CRM 的 AI Agent（Hermes / Claude Code / 外部 workflow）
+>
+> 📘 **完整 AI 操作手冊**：`~/.agents/references/fdd-crm/FDD-CRM-AI-MANUAL.md`
+> 包含所有 API 端點、MCP 工具、資料模型、行為規則、腦庫連結。
 
 ---
 
@@ -184,3 +187,8 @@ curl -s -X POST https://fdd-crm.pages.dev/api/mcp \
 ```
 
 兩個都回傳正常 → 接入完成 ✅
+
+---
+
+> 📘 **完整 AI 操作手冊**：`~/.agents/references/fdd-crm/FDD-CRM-AI-MANUAL.md`
+> 包含：完整 API 端點規格、MCP 工具參數、資料模型、行為規則、腦庫/gbrain 查詢流程

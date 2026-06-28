@@ -167,6 +167,32 @@ export function saveDailyReport() {
   toast('✅ 已儲存');
 }
 
+// ── Quick mode toggle ────────────────────────────────────────────────────────
+
+const DAILY_MODE_KEY = 'crm-daily-mode';
+
+function isQuickMode() {
+  return localStorage.getItem(DAILY_MODE_KEY) !== 'full';
+}
+
+export function toggleDailyMode() {
+  const next = isQuickMode() ? 'full' : 'quick';
+  localStorage.setItem(DAILY_MODE_KEY, next);
+  renderDailyPage();
+}
+
+function applyModeClass() {
+  const body = document.getElementById('daily-body');
+  if (!body) return;
+  const quick = isQuickMode();
+  body.classList.toggle('daily-quick-mode', quick);
+  const btn = document.getElementById('daily-mode-toggle');
+  if (btn) {
+    btn.textContent = quick ? '📋 完整' : '⚡ 簡潔';
+    btn.classList.toggle('active', quick);
+  }
+}
+
 // ── Monthly goals ─────────────────────────────────────────────────────────────
 
 export function saveMonthSalesTarget() {
@@ -418,6 +444,7 @@ export function renderDailyPage() {
 </div>`;
 
   renderMonthlyProgress();
+  applyModeClass();
 
   // 自動捲到當前時段
   if (nowSlot >= 0) {

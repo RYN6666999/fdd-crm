@@ -382,7 +382,7 @@ async function executeTool(name, input, env) {
       createdAt: Date.now(), updatedAt: Date.now(),
     };
     nodes.push(newNode);
-    await kvPut(env, 'nodes', { data: nodes });
+    await kvPut(env, 'nodes', nodes);
     return { ok:true, message:`已新增聯絡人：${input.name}` };
   }
 
@@ -392,7 +392,7 @@ async function executeTool(name, input, env) {
     if (input.status) nodes[realIdx].status = input.status;
     if (input.info)   nodes[realIdx].info = { ...(nodes[realIdx].info||{}), ...input.info };
     nodes[realIdx].updatedAt = Date.now();
-    await kvPut(env, 'nodes', { data: nodes });
+    await kvPut(env, 'nodes', nodes);
     return { ok:true, updated:nodes[realIdx].name, fields:[...Object.keys(input.info||{}), ...(input.status?['status']:[])].join(', ') };
   }
 

@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "verify": "node check-imports.mjs",
+    "test": "bash test-fdd-crm.sh",
     "predeploy": "node check-imports.mjs",
     "deploy": "node check-imports.mjs && npx wrangler pages deploy . --project-name fdd-crm --commit-dirty=true",
     "css:purge": "purgecss --config purgecss.config.cjs",

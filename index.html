@@ -119,6 +119,13 @@
   }
 </script>
 
+<!-- 全域 Loading -->
+<div id="loading-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(13,17,23,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;flex-direction:column;gap:12px">
+  <div style="width:32px;height:32px;border:3px solid #30363d;border-top-color:#388bfd;border-radius:50%;animation:spin .6s linear infinite"></div>
+  <div style="font-size:13px;color:#8b949e">載入中…</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
 <!-- CRM Page -->
 <div class="page" id="page-crm">
   <div class="crm-view-bar">
@@ -380,6 +387,7 @@
         <button class="btn" style="font-size:11px;padding:4px 10px" onclick="dailyToday()">今天</button>
       </div>
       <button class="btn btn-accent" style="margin-left:8px" onclick="saveDailyReport()">儲存</button>
+      <button class="btn" style="margin-left:6px;padding:.3rem .7rem;font-size:.8rem" onclick="toggleDailyMode()" id="daily-mode-toggle">⚡ 簡潔</button>
     </div>
     <div class="daily-body" id="daily-body"></div>
   </div>

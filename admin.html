@@ -57,7 +57,9 @@
     document.getElementById('tableWrap').innerHTML = '<div class="loading">載入中…</div>';
 
     try {
-      const res = await fetch(`./api/login?token=${encodeURIComponent(token)}`);
+      const res = await fetch('./api/login', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
       const data = await res.json();
 
       if (!data.ok) {

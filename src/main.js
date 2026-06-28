@@ -8,6 +8,7 @@
 import { STORE } from './core/store.js';
 import { dispatch, getNodes, gatherSubtree, isHidden } from './core/state.js';
 import { toast } from './core/toast.js';
+import { captureError, installGlobalCapture, loadLog, clearLog } from './core/error-monitor.js';
 import { undoLast, pushUndo } from './core/undo.js';
 
 // ── Commands ──────────────────────────────────────────────────────────────────
@@ -100,7 +101,19 @@ import { cloudLoadAll, cloudPush, setCloudToken, getCloudToken, testCloudConnect
 
 let _currentPage = 'canvas';
 
-export function navigate(page) {
+export function showLoading() {
+  const el = document.getElementById('loading-overlay');
+  if (el) el.style.display = 'flex';
+}
+function hideLoading() {
+  const el = document.getElementById('loading-overlay');
+  if (el) el.style.display = 'none';
+}
+
+function navigate(page) {
+  showLoading();
+  // defer render so overlay shows before blocking
+  setTimeout(() => {
   _currentPage = page;
 
   // Normalise aliases → canonical page ID
@@ -133,6 +146,8 @@ export function navigate(page) {
       renderObsidianPath(); renderCmdList(); renderThemeGrid();
       break;
   }
+  hideLoading();
+  }, 50);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -235,6 +250,7 @@ function registerWindowBridge() {
 
   window.__crmNavigate          = page => navigate(page);
   window.__crmFullRefresh       = () => { loadData(); navigate(_currentPage); };
+  window.toggleDailyMode        = () => { import('./features/daily/index.js').then(m => m.toggleDailyMode()); };
 
   // ── A 類：HTML inline onclick 直接呼叫的全域名稱 ────────────────────────
   // Navigation
@@ -478,8 +494,13 @@ export async function init() {
   fitView();
   updateStats();
 
-  // Restore last page
-  const lastPage = localStorage.getItem('crm-last-page') || 'crm';
+  // Restore last page, but redirect to daily if today's report is empty
+  const today = new Date().toISOString().slice(0, 10);
+  const todayReport = (getDailyReports()||{})[today] || {};
+  const hasDailyData = todayReport['act-invite'] || todayReport['act-calls'] || todayReport['act-forms']
+    || todayReport['act-followup'] || todayReport['act-close'] || todayReport.bigThree?.length
+    || todayReport.tomorrow;
+  const lastPage = hasDailyData ? (localStorage.getItem('crm-last-page') || 'crm') : 'daily';
   navigate(lastPage);
 
   // Persist current page on tab-btn clicks (persist before navigating)
@@ -502,11 +523,77 @@ export async function init() {
   console.log('[CRM] init complete');
 }
 
+import { loadLog, clearLog } from './core/error-monitor.js';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Error Monitor UI
+// ─────────────────────────────────────────────────────────────────────────────
+
+function renderErrorBadge() {
+  const el = document.getElementById('header-stats');
+  if (!el) return;
+  const errors = loadLog();
+  if (errors.length === 0) { el.innerHTML = ''; return; }
+  const count = errors.length;
+  el.innerHTML = `<span class="error-badge" onclick="toggleErrorPanel()" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:#3a0000;color:#ff8080;border-radius:12px;font-size:11px;font-weight:600">
+    ✕ ${count > 99 ? '99+' : count}
+  </span>`;
+}
+
+window.toggleErrorPanel = function() {
+  const existing = document.getElementById('crm-error-panel');
+  if (existing) { existing.remove(); return; }
+  const errors = loadLog();
+  const panel = document.createElement('div');
+  panel.id = 'crm-error-panel';
+  panel.style.cssText = 'position:fixed;top:60px;right:12px;width:420px;max-height:60vh;overflow-y:auto;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:12px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.6);font-size:12px;font-family:monospace';
+  const header = document.createElement('div');
+  header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #333;position:sticky;top:0;background:#1a1a1a';
+  header.innerHTML = `<span style="color:#ff8080;font-weight:700">✕ 錯誤紀錄 (${errors.length})</span>
+    <span onclick="clearErrorPanel()" style="cursor:pointer;color:#888;font-size:11px">🗑 清除</span>`;
+  panel.appendChild(header);
+  if (errors.length === 0) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'padding:20px;text-align:center;color:#666';
+    empty.textContent = '無錯誤紀錄';
+    panel.appendChild(empty);
+  } else {
+    [...errors].reverse().forEach(e => {
+      const item = document.createElement('div');
+      item.style.cssText = 'padding:8px 12px;border-bottom:1px solid #252525';
+      const time = document.createElement('div');
+      time.style.cssText = 'color:#666;font-size:10px';
+      time.textContent = e.at;
+      item.appendChild(time);
+      const msg = document.createElement('div');
+      msg.style.cssText = 'color:#ff8080;margin-top:2px;word-break:break-all';
+      msg.textContent = e.msg;
+      item.appendChild(msg);
+      if (e.stack) {
+        const stack = document.createElement('div');
+        stack.style.cssText = 'color:#666;margin-top:4px;font-size:10px;white-space:pre-wrap;max-height:80px;overflow:hidden';
+        stack.textContent = e.stack;
+        item.appendChild(stack);
+      }
+      panel.appendChild(item);
+    });
+  }
+  document.body.appendChild(panel);
+};
+
+window.clearErrorPanel = function() {
+  clearLog();
+  document.getElementById('crm-error-panel')?.remove();
+  renderErrorBadge();
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Boot
 // ─────────────────────────────────────────────────────────────────────────────
 
 function bootWithErrorReport() {
+  installGlobalCapture();
+  renderErrorBadge();
   init().catch(err => {
     console.error('[CRM BOOT ERROR]', err);
     const div = document.createElement('div');

@@ -139,6 +139,9 @@
         if (name && rank) { window.location.replace('./index.html'); }
       } catch(e) {}
     }
+    // 還原上次職級
+    const savedRank = localStorage.getItem('crm-profile-rank');
+    if (savedRank) document.getElementById('rank').value = savedRank;
   })();
 
   async function doLogin() {

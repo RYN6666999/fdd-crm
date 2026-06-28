@@ -110,53 +110,58 @@
   z-index:200;flex-shrink:0;
 }
 .sidebar-logo{
-  display:flex;align-items:center;gap:8px;
-  padding:14px 18px;font-size:14px;font-weight:700;
+  display:flex;align-items:center;gap:10px;
+  padding:16px 20px 14px;font-size:15px;font-weight:700;
   border-bottom:1px solid var(--border);color:var(--text);
-  flex-shrink:0;
+  flex-shrink:0;letter-spacing:-.02em;
 }
-.sidebar-logo svg{width:18px;height:18px;stroke:var(--accent);fill:none;stroke-width:2;flex-shrink:0}
-.sidebar-nav{flex:1;overflow-y:auto;padding:6px 0}
+.sidebar-logo svg{width:20px;height:20px;stroke:var(--accent);fill:none;stroke-width:2;flex-shrink:0}
+.sidebar-nav{flex:1;overflow-y:auto;padding:8px 0}
 .sidebar-nav::-webkit-scrollbar{display:none}
 .sidebar-item{
   display:flex;align-items:center;gap:10px;
-  padding:9px 18px;margin:1px 8px;border-radius:var(--radius-sm);
-  font-size:13px;font-weight:500;color:var(--text-muted);
-  cursor:pointer;transition:color .12s,background .12s;
-  border:none;background:none;width:calc(100% - 16px);text-align:left;
+  padding:10px 16px;margin:2px 10px;border-radius:var(--radius-md);
+  font-size:13.5px;font-weight:500;color:var(--text-muted);
+  cursor:pointer;transition:all .15s ease;
+  border:none;background:none;width:calc(100% - 20px);text-align:left;
   font-family:inherit;position:relative;
 }
-.sidebar-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;flex-shrink:0}
-.sidebar-item:hover{color:var(--text);background:var(--accent-soft)}
-.sidebar-item.active{color:var(--accent);font-weight:600;background:var(--accent-dim)}
+.sidebar-item svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.75;flex-shrink:0;opacity:.8}
+.sidebar-item:hover{color:var(--text);background:var(--surface2)}
+.sidebar-item.active{
+  color:var(--text);font-weight:600;
+  background:var(--accent-dim);box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+.sidebar-item.active svg{stroke:var(--accent);opacity:1}
 .sidebar-item.active::before{
-  content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);
-  width:3px;height:16px;background:var(--accent);border-radius:0 3px 3px 0;
+  content:'';position:absolute;left:-10px;top:50%;transform:translateY(-50%);
+  width:3px;height:18px;background:var(--accent);border-radius:0 3px 3px 0;
 }
 .sidebar-footer{
-  padding:10px 14px;border-top:1px solid var(--border);
+  padding:12px 16px;border-top:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;
   flex-shrink:0;font-size:12px;color:var(--text-muted);
 }
-.sidebar-user{display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.sidebar-user{display:flex;align-items:center;gap:7px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:500}
+.sidebar-user:before{content:'👤';font-size:13px}
 .sidebar-logout{
   background:none;border:none;color:var(--text-subtle);cursor:pointer;
-  font-size:14px;padding:4px;border-radius:4px;transition:color .12s;
+  font-size:15px;padding:5px;border-radius:var(--radius-sm);transition:all .12s;
 }
-.sidebar-logout:hover{color:var(--red)}
+.sidebar-logout:hover{color:var(--red);background:var(--red-bg)}
 
 /* ── Main content area ──────────────────────────────────── */
 .main-content{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;min-width:0}
 .main-content .header{
   position:relative;top:auto;left:auto;right:auto;height:auto;
-  background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;
+  background:rgba(13,17,23,.75);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:10px;
-  padding:10px 20px;flex-shrink:0;min-height:50px;
+  display:flex;align-items:center;gap:12px;
+  padding:8px 20px;flex-shrink:0;min-height:48px;
 }
 .main-content .header .tab-nav{display:none}
-.main-content .header-stats{margin-left:auto}
-.main-content .header-actions{display:flex;gap:8px;align-items:center}
+.main-content .header-stats{margin-left:auto;display:flex;gap:10px;align-items:center}
+.main-content .header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
 .main-content .page{
   flex:1;overflow-y:auto;overflow-x:hidden;display:none;
   position:relative;padding:0;width:100%;

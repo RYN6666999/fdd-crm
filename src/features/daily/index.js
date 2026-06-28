@@ -4,7 +4,7 @@
  * 依賴：core/state.js, core/toast.js, core/calc.js, core/store.js
  */
 
-import { getDailyReports, getMonthlyGoals, getMonthlySalesTargets, getSalesData, getNodes, dispatch } from '../../core/state.js';
+import { getDailyReports, getMonthlyGoals, getMonthlySalesTargets, getSalesData, getNodes, getEvents, dispatch } from '../../core/state.js';
 import { STORE } from '../../core/store.js';
 import { CALC } from '../../core/calc.js';
 import { toast } from '../../core/toast.js';
@@ -277,6 +277,59 @@ export function renderMonthlyProgress() {
     </div>`;
 }
 
+// ── Smart Summary Bar ────────────────────────────────────────────────────────
+
+function renderDailySummary(ds) {
+  const el = document.getElementById('daily-summary');
+  if (!el) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const monthKey = today.slice(0, 7);
+
+  // KPI progress
+  const goals = getMonthlyGoals()[monthKey] || {};
+  const reports = getDailyReports();
+  const monthActuals = Object.keys(reports)
+    .filter(d => d.startsWith(monthKey))
+    .reduce((acc, d) => {
+      const r = reports[d] || {};
+      DAILY_KPI.forEach(i => acc[i.k] = (acc[i.k] || 0) + (r[i.k] || 0));
+      return acc;
+    }, {});
+  const kpiParts = DAILY_KPI.map(i => {
+    const goal = goals[i.mk] || 0;
+    const actual = monthActuals[i.k] || 0;
+    const pct = goal ? Math.round(actual / goal * 100) : 0;
+    return `${i.label} ${actual}/${goal}${goal ? ' ('+pct+'%)' : ''}`;
+  });
+
+  // Sales progress
+  const salesTarget = getMonthlySalesTargets()[monthKey] || 0;
+  const monthSales = getSalesData().filter(s => (s.date || '').startsWith(monthKey));
+  const salesTotal = monthSales.reduce((a, s) => a + (s.amount || 0), 0);
+  const salesPct = salesTarget ? Math.round(salesTotal / salesTarget * 100) : 0;
+
+  // Overdue contacts
+  const nodes = getNodes().filter(n => n.parentId !== null && n.name);
+  const overdue = nodes.filter(n => {
+    if (!n.info?.lastContact) return true;
+    if (n.status !== 'green' && n.status !== 'yellow') return false;
+    const days = (new Date(today) - new Date(n.info.lastContact)) / 86400000;
+    return days > 7;
+  });
+
+  // Next event today
+  const todayEvents = getEvents().filter(e => e.date === today).sort((a, b) => (a.time||'').localeCompare(b.time||''));
+  const nextEvent = todayEvents[0];
+
+  const parts = [];
+  parts.push(`<span class="summary-section"><span class="summary-icon">📊</span> ${kpiParts.join(' · ')}</span>`);
+  parts.push(`<span class="summary-section"><span class="summary-icon">💰</span> NT$${salesTotal.toLocaleString()} / NT$${salesTarget.toLocaleString()} (${salesPct}%)</span>`);
+  if (overdue.length) parts.push(`<span class="summary-section"><span class="summary-icon">🔔</span> ${overdue.length} 位超過7天未聯繫</span>`);
+  if (nextEvent) parts.push(`<span class="summary-section"><span class="summary-icon">📅</span> ${nextEvent.time||''} ${nextEvent.title||nextEvent.name||''}</span>`);
+
+  el.innerHTML = `<div class="summary-bar">${parts.join('')}</div>`;
+}
+
 // ── Main render ───────────────────────────────────────────────────────────────
 
 export function renderDailyPage() {
@@ -312,6 +365,9 @@ export function renderDailyPage() {
 
   body.innerHTML = `
 <datalist id="drn-list">${nodeOptions}</datalist>
+
+<div class="daily-summary" id="daily-summary"></div>
+
 <div class="daily-two-col">
 
   <!-- LEFT -->
@@ -444,6 +500,7 @@ export function renderDailyPage() {
 </div>`;
 
   renderMonthlyProgress();
+  renderDailySummary(ds);
   applyModeClass();
 
   // 自動捲到當前時段

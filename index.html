@@ -77,37 +77,65 @@
 </script>
 </head>
 <body>
+<div class="app-layout">
 
-<!-- Header -->
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 3v18"/></svg>
+    房多多
+  </div>
+  <div class="sidebar-nav">
+    <button class="sidebar-item active" onclick="switchPage('daily')" data-page="daily">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 14h6M9 18h4"/></svg>日報
+    </button>
+    <button class="sidebar-item" onclick="switchPage('crm')" data-page="crm">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M11 8h3M12 8l4 10M12 8l-1 10"/><circle cx="8" cy="16" r="4"/></svg>人脈
+    </button>
+    <button class="sidebar-item" onclick="switchPage('events')" data-page="events">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>行程
+    </button>
+    <button class="sidebar-item" onclick="switchPage('sales')" data-page="sales">
+      <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>業績
+    </button>
+    <button class="sidebar-item" onclick="switchPage('docs')" data-page="docs">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>文件
+    </button>
+    <button class="sidebar-item" onclick="switchPage('ai')" data-page="ai">
+      <svg viewBox="0 0 24 24"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 15l.8 2.2 2.2.8-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>AI
+    </button>
+    <button class="sidebar-item" onclick="switchPage('settings')" data-page="settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>設定
+    </button>
+  </div>
+  <div class="sidebar-footer">
+    <span class="sidebar-user" id="sidebar-user">👤</span>
+    <button class="sidebar-logout" onclick="doLogout()" title="登出">⏏</button>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main-content">
+
+<!-- Header bar (compact) -->
 <div class="header">
-  <div class="header-logo">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-    房多多經營系統
-  </div>
-  <div class="header-sep"></div>
-  <div class="tab-nav">
-    <button class="tab-btn active" onclick="switchPage('crm')" id="tab-crm"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><circle cx="18" cy="5" r="2.2"/><circle cx="18" cy="19" r="2.2"/><path d="M12 7h3.5M12 7l4 10M12 7l-1 10"/><circle cx="8" cy="17" r="3"/></svg>人脈</button>
-    <button class="tab-btn" onclick="switchPage('daily')" id="tab-daily"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>日報</button>
-    <button class="tab-btn" onclick="switchPage('events')" id="tab-events"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>日程</button>
-    <button class="tab-btn" onclick="switchPage('sales')" id="tab-sales"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>業績</button>
-    <button class="tab-btn" onclick="switchPage('docs')" id="tab-docs"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>文件</button>
-    <button class="tab-btn" onclick="switchPage('ai')" id="tab-ai"><svg viewBox="0 0 24 24"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 15l.8 2.2 2.2.8-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>AI</button>
-    <button class="tab-btn" onclick="switchPage('students')" id="tab-students"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>學員</button>
-    <button class="tab-btn" onclick="switchPage('settings')" id="tab-settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>設定</button>
-  </div>
+  <div class="header-logo" style="display:none"></div>
+  <div class="tab-nav" style="display:none"></div>
   <div class="header-stats" id="header-stats"></div>
   <div class="header-actions">
     <button class="btn btn-accent" onclick="headerAddNode()">＋ 新增聯繫人</button>
     <button class="btn" style="padding:.4rem .8rem;background:var(--surface2);border:1px solid var(--border)" onclick="headerAddNote()" title="新增純文字便條">📝 便條</button>
-    <span id="header-user-badge" style="font-size:.8rem;color:var(--text-muted);margin-left:.5rem"></span>
-    <button class="btn" style="padding:.3rem .7rem;font-size:.78rem;margin-left:.25rem;color:var(--text-muted)" onclick="doLogout()" title="登出">⏏</button>
+    <span id="header-user-badge" style="font-size:.8rem;color:var(--text-muted)"></span>
   </div>
 </div>
+
 <script>
   // 顯示登入者姓名
   (function(){
     try {
       var lv = JSON.parse(localStorage.getItem('crm-login')||'{}');
+      var su = document.getElementById('sidebar-user');
+      if(su && lv.name) su.textContent = (lv.rankLabel||'') + ' ' + lv.name;
       var el = document.getElementById('header-user-badge');
       if(el && lv.name) el.textContent = (lv.rankLabel||'') + ' ' + lv.name;
     } catch(e){}
@@ -846,5 +874,8 @@
     if(status) status.textContent = '✅ 已安裝';
   });
 </script>
+</div><!-- /.main-content -->
+</div><!-- /.app-layout -->
+<script src="src/main.js" type="module"></script>
 </body>
 </html>

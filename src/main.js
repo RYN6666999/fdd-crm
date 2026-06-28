@@ -126,12 +126,14 @@ function navigate(page) {
   const section = document.getElementById(`page-${pageId}`);
   if (section) section.style.display = 'flex';
 
-  // Highlight active tab button
-  document.querySelectorAll('.tab-btn').forEach(n => n.classList.remove('active'));
-  // Match by onclick content or data-page
-  const navEl = document.querySelector(`.tab-btn[onclick*="'${page}'"]`)
-             || document.querySelector(`.tab-btn[data-page="${page}"]`);
+  // Highlight active sidebar item
+  document.querySelectorAll('.sidebar-item').forEach(n => n.classList.remove('active'));
+  const navEl = document.querySelector(`.sidebar-item[data-page="${page}"]`)
+             || document.querySelector(`.sidebar-item[onclick*="'${page}'"]`);
   if (navEl) navEl.classList.add('active');
+
+  // Also persist page for next load
+  localStorage.setItem('crm-last-page', page);
 
   switch (pageId) {
     case 'crm':      setCrmView('tree'); break;
@@ -503,14 +505,7 @@ export async function init() {
   const lastPage = hasDailyData ? (localStorage.getItem('crm-last-page') || 'crm') : 'daily';
   navigate(lastPage);
 
-  // Persist current page on tab-btn clicks (persist before navigating)
-  document.querySelectorAll('.tab-btn[onclick]').forEach(el => {
-    el.addEventListener('click', () => {
-      const m = el.getAttribute('onclick')?.match(/switchPage\('([^']+)'\)/);
-      if (m) localStorage.setItem('crm-last-page', m[1]);
-    });
-  });
-
+  // Persist current page is now handled inside navigate()
   // 背景從 KV 拉最新（有 token 才跑，不阻塞啟動）
   syncFromCloud().catch(() => {});
 

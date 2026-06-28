@@ -86,6 +86,7 @@
   --accent:#388bfd;
   --accent-dim:rgba(56,139,253,.15);
   --accent-glow:rgba(56,139,253,.25);
+  --accent-soft:rgba(56,139,253,.08);
   --node-shadow:0 2px 12px rgba(0,0,0,.5);
   --shadow-sm:0 1px 3px rgba(0,0,0,.3);
   --shadow-md:0 4px 16px rgba(0,0,0,.4);
@@ -94,7 +95,73 @@
   --radius-md:10px;
   --radius-lg:14px;
   --radius-xl:18px;
+  --sidebar-width:220px;
+  --sidebar-collapsed:56px;
 }
+
+/* ── App Layout ─────────────────────────────────────────── */
+.app-layout{display:flex;height:100vh;overflow:hidden}
+
+/* ── Sidebar ────────────────────────────────────────────── */
+.sidebar{
+  width:var(--sidebar-width);min-width:var(--sidebar-width);
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+  z-index:200;flex-shrink:0;
+}
+.sidebar-logo{
+  display:flex;align-items:center;gap:8px;
+  padding:14px 18px;font-size:14px;font-weight:700;
+  border-bottom:1px solid var(--border);color:var(--text);
+  flex-shrink:0;
+}
+.sidebar-logo svg{width:18px;height:18px;stroke:var(--accent);fill:none;stroke-width:2;flex-shrink:0}
+.sidebar-nav{flex:1;overflow-y:auto;padding:6px 0}
+.sidebar-nav::-webkit-scrollbar{display:none}
+.sidebar-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 18px;margin:1px 8px;border-radius:var(--radius-sm);
+  font-size:13px;font-weight:500;color:var(--text-muted);
+  cursor:pointer;transition:color .12s,background .12s;
+  border:none;background:none;width:calc(100% - 16px);text-align:left;
+  font-family:inherit;position:relative;
+}
+.sidebar-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;flex-shrink:0}
+.sidebar-item:hover{color:var(--text);background:var(--accent-soft)}
+.sidebar-item.active{color:var(--accent);font-weight:600;background:var(--accent-dim)}
+.sidebar-item.active::before{
+  content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);
+  width:3px;height:16px;background:var(--accent);border-radius:0 3px 3px 0;
+}
+.sidebar-footer{
+  padding:10px 14px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;font-size:12px;color:var(--text-muted);
+}
+.sidebar-user{display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.sidebar-logout{
+  background:none;border:none;color:var(--text-subtle);cursor:pointer;
+  font-size:14px;padding:4px;border-radius:4px;transition:color .12s;
+}
+.sidebar-logout:hover{color:var(--red)}
+
+/* ── Main content area ──────────────────────────────────── */
+.main-content{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;min-width:0}
+.main-content .header{
+  position:relative;top:auto;left:auto;right:auto;height:auto;
+  background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+  padding:10px 20px;flex-shrink:0;min-height:50px;
+}
+.main-content .header .tab-nav{display:none}
+.main-content .header-stats{margin-left:auto}
+.main-content .header-actions{display:flex;gap:8px;align-items:center}
+.main-content .page{
+  flex:1;overflow-y:auto;overflow-x:hidden;display:none;
+  position:relative;padding:0;width:100%;
+}
+.main-content .page.active{display:flex}
 
 /* ═══════════════════════════════════════
    BASE
@@ -782,6 +849,18 @@ select.field-input option{background:var(--surface2)}
 .daily-two-col{display:grid;grid-template-columns:1fr 1.35fr;gap:16px;align-items:start}
 .daily-col{display:flex;flex-direction:column;gap:14px}
 @media(max-width:860px){.daily-two-col{grid-template-columns:1fr}}
+
+/* ── Daily summary bar ──────────────────────────────────── */
+.daily-summary{padding:8px 16px;margin-bottom:6px}
+.summary-bar{
+  display:flex;flex-wrap:wrap;gap:8px 16px;
+  padding:10px 14px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-md);font-size:12px;color:var(--text);
+  line-height:1.6;align-items:center;
+}
+.summary-section{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.summary-icon{font-size:13px;opacity:.8}
 
 /* ── Daily quick mode ──────────────────────────────────────── */
 .daily-quick-mode .daily-col:first-child .daily-section:nth-child(2),

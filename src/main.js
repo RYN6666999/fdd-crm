@@ -518,8 +518,6 @@ export async function init() {
   console.log('[CRM] init complete');
 }
 
-import { loadLog, clearLog } from './core/error-monitor.js';
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Error Monitor UI
 // ─────────────────────────────────────────────────────────────────────────────

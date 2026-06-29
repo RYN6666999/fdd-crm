@@ -780,10 +780,11 @@
           .catch(function(e){console.warn('[SW] 註冊失敗', e)});
 
         // SW 接管後強制 reload（加 bust 參數跳過快取）
-        var _reloading = false;
+        var _reloading = sessionStorage.getItem("crm-sw-reloaded");
         navigator.serviceWorker.addEventListener('controllerchange', function(){
           if(_reloading) return;
-          _reloading = true;
+          _reloading = "1";
+          sessionStorage.setItem("crm-sw-reloaded", "1");
           console.log('[SW] 新版本已接管，強制更新頁面');
           var t = document.createElement('div');
           t.textContent = '✅ 偵測到新版本，正在更新…';
@@ -875,6 +876,6 @@
 </script>
 </div><!-- /.main-content -->
 </div><!-- /.app-layout -->
-<script type="module" src="src/main.js?v=1782711576"></script>
+<script type="module" src="src/main.js?v=1782713797"></script>
 </body>
 </html>

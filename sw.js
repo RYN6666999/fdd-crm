@@ -3,7 +3,7 @@
    策略：HTML/JS/CSS → Network-First（部署後立即生效）
          圖片/字型   → Cache-First（離線可用）
 ═══════════════════════════════════════ */
-const CACHE = 'fdd-crm-v63';
+const CACHE = 'fdd-crm-v203';
 const PRECACHE = [
   './icon.svg',
   './icon-192.png',

@@ -62,33 +62,49 @@
 }
 :root[data-theme="nature"]{
   --bg:transparent;
-  --surface:rgba(241,245,244,.72);
-  --surface2:rgba(241,245,244,.52);
-  --surface3:rgba(241,245,244,.36);
-  --border:rgba(94,136,126,.22);--border-hover:rgba(94,136,126,.5);
-  --text:#2f3e46;--text-muted:#5c6f67;--text-subtle:#8ea39a;
-  --canvas-dot:rgba(47,62,70,.06);
-  --accent:#5e887e;
-  --accent-dim:rgba(94,136,126,.18);
-  --accent-glow:rgba(94,136,126,.30);
-  --accent-soft:rgba(94,136,126,.10);
-  --node-shadow:0 4px 20px rgba(47,62,70,.18);
-  --shadow-sm:0 1px 4px rgba(47,62,70,.10);
-  --shadow-md:0 4px 20px rgba(47,62,70,.16);
-  --shadow-lg:0 8px 32px rgba(47,62,70,.22);
-  --radius-sm:10px;--radius-md:14px;--radius-lg:18px;--radius-xl:24px;
-  --green:#3a8c5c;--green-bg:rgba(58,140,92,.13);--green-border:rgba(58,140,92,.3);
-  --red:#c0544a;--red-bg:rgba(192,84,74,.12);--red-border:rgba(192,84,74,.28);
-  --yellow:#a07c2a;--yellow-bg:rgba(160,124,42,.13);--yellow-border:rgba(160,124,42,.28);
+  /* 奶油白 surface，微帶暖調 */
+  --surface:rgba(250,246,242,.78);
+  --surface2:rgba(250,246,242,.56);
+  --surface3:rgba(250,246,242,.38);
+  --border:rgba(168,196,188,.30);--border-hover:rgba(120,170,158,.55);
+  --text:#3a4a44;--text-muted:#6b7d75;--text-subtle:#9db4ac;
+  --canvas-dot:rgba(60,80,70,.05);
+  /* 薄荷綠 accent */
+  --accent:#7bbcac;
+  --accent-dim:rgba(123,188,172,.20);
+  --accent-glow:rgba(123,188,172,.32);
+  --accent-soft:rgba(123,188,172,.12);
+  --node-shadow:0 6px 24px rgba(60,80,70,.14);
+  --shadow-sm:0 2px 8px rgba(60,80,70,.08);
+  --shadow-md:0 6px 24px rgba(60,80,70,.14);
+  --shadow-lg:0 12px 40px rgba(60,80,70,.18);
+  /* 更大的有機圓角 */
+  --radius-sm:12px;--radius-md:18px;--radius-lg:24px;--radius-xl:32px;
+  --green:#5aaa80;--green-bg:rgba(90,170,128,.14);--green-border:rgba(90,170,128,.32);
+  --red:#c8736a;--red-bg:rgba(200,115,106,.12);--red-border:rgba(200,115,106,.28);
+  --yellow:#c49a52;--yellow-bg:rgba(196,154,82,.13);--yellow-border:rgba(196,154,82,.28);
 }
+/* ── Nature: 底圖 + 有機色塊疊加 ────────────────────── */
 :root[data-theme="nature"] html,
 :root[data-theme="nature"] body { background: transparent; }
+
+/* 底圖：輕度模糊，保留山湖景深 */
 :root[data-theme="nature"] body::before {
-  content:'';position:fixed;inset:-10px;z-index:-1;
+  content:'';position:fixed;inset:-8px;z-index:-2;
   background:url('./bg-nature.jpg') center/cover no-repeat;
-  filter:blur(18px) brightness(1.08) saturate(0.85);
-  transform:scale(1.06);
+  filter:blur(6px) brightness(1.12) saturate(0.75);
+  transform:scale(1.04);
 }
+/* 有機色塊：薄荷 / 霧藍 / 蜜桃三色 blob 疊在底圖上 */
+:root[data-theme="nature"] body::after {
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse 65% 55% at 15% 25%, rgba(168,213,194,.55) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 65% at 85% 75%, rgba(184,212,232,.50) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 45% at 70% 15%, rgba(242,201,184,.42) 0%, transparent 68%),
+    radial-gradient(ellipse 40% 50% at 45% 85%, rgba(168,213,194,.30) 0%, transparent 60%);
+}
+/* ── 毛玻璃 surfaces ─────────────────────────────────── */
 :root[data-theme="nature"] .sidebar,
 :root[data-theme="nature"] .main-header,
 :root[data-theme="nature"] .page,
@@ -103,20 +119,40 @@
 :root[data-theme="nature"] .doc-card,
 :root[data-theme="nature"] .dropdown-menu,
 :root[data-theme="nature"] .toast-item {
-  backdrop-filter:blur(14px) saturate(1.4);
-  -webkit-backdrop-filter:blur(14px) saturate(1.4);
+  backdrop-filter:blur(18px) saturate(1.5) brightness(1.04);
+  -webkit-backdrop-filter:blur(18px) saturate(1.5) brightness(1.04);
 }
+/* ── 卡片有機裝飾：右下角薄荷色 blob ────────────────── */
+:root[data-theme="nature"] .settings-card,
+:root[data-theme="nature"] .node-card,
+:root[data-theme="nature"] .sales-card,
+:root[data-theme="nature"] .daily-card {
+  position:relative;overflow:hidden;
+}
+:root[data-theme="nature"] .settings-card::after,
+:root[data-theme="nature"] .node-card::after,
+:root[data-theme="nature"] .sales-card::after,
+:root[data-theme="nature"] .daily-card::after {
+  content:'';position:absolute;bottom:-28px;right:-28px;
+  width:110px;height:88px;pointer-events:none;z-index:0;
+  background:rgba(168,213,194,.28);
+  border-radius:62% 38% 72% 28% / 48% 58% 42% 52%;
+}
+/* ── 按鈕：薄荷漸層 pill ─────────────────────────────── */
 :root[data-theme="nature"] .btn-primary,
 :root[data-theme="nature"] .btn.btn-primary {
-  background:linear-gradient(135deg,#5e887e,#4a6e66);
-  border-color:transparent;
+  background:linear-gradient(135deg,#7bbcac,#5ea89a);
+  border-color:transparent;border-radius:999px;
+  box-shadow:0 4px 16px rgba(123,188,172,.35);
 }
 :root[data-theme="nature"] .btn-primary:hover,
 :root[data-theme="nature"] .btn.btn-primary:hover {
-  background:linear-gradient(135deg,#4a6e66,#3a5a52);
+  background:linear-gradient(135deg,#5ea89a,#4a9086);
 }
+/* ── Active 側邊欄項目 ───────────────────────────────── */
 :root[data-theme="nature"] .sidebar-item.active {
-  background:rgba(94,136,126,.18);
+  background:rgba(123,188,172,.22);
+  border-radius:16px;
 }
 :root{
   --bg:#0d1117;

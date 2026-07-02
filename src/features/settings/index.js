@@ -18,7 +18,8 @@ export const THEMES = [
   { id: 'sage-gold',  label: '清新金綠',  icon: '🛫' },
   { id: 'impact',     label: 'Impact',   icon: '⚡' },
   { id: 'neuo',       label: '浮凸 2.5D', icon: '🪨' },
-  { id: 'nature',     label: '山湖晨霧',  icon: '🏔' },
+  { id: 'nature',     label: '奶油有機',  icon: '🌿' },
+  { id: 'nature-glass', label: '霧面玻璃', icon: '🏔' },
 ];
 
 export function applyTheme(theme) {

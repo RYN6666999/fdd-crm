@@ -60,6 +60,64 @@
   --canvas-dot:rgba(20,40,30,.05);
   --accent:#c79b2b;
 }
+:root[data-theme="nature"]{
+  --bg:transparent;
+  --surface:rgba(241,245,244,.72);
+  --surface2:rgba(241,245,244,.52);
+  --surface3:rgba(241,245,244,.36);
+  --border:rgba(94,136,126,.22);--border-hover:rgba(94,136,126,.5);
+  --text:#2f3e46;--text-muted:#5c6f67;--text-subtle:#8ea39a;
+  --canvas-dot:rgba(47,62,70,.06);
+  --accent:#5e887e;
+  --accent-dim:rgba(94,136,126,.18);
+  --accent-glow:rgba(94,136,126,.30);
+  --accent-soft:rgba(94,136,126,.10);
+  --node-shadow:0 4px 20px rgba(47,62,70,.18);
+  --shadow-sm:0 1px 4px rgba(47,62,70,.10);
+  --shadow-md:0 4px 20px rgba(47,62,70,.16);
+  --shadow-lg:0 8px 32px rgba(47,62,70,.22);
+  --radius-sm:10px;--radius-md:14px;--radius-lg:18px;--radius-xl:24px;
+  --green:#3a8c5c;--green-bg:rgba(58,140,92,.13);--green-border:rgba(58,140,92,.3);
+  --red:#c0544a;--red-bg:rgba(192,84,74,.12);--red-border:rgba(192,84,74,.28);
+  --yellow:#a07c2a;--yellow-bg:rgba(160,124,42,.13);--yellow-border:rgba(160,124,42,.28);
+}
+:root[data-theme="nature"] html,
+:root[data-theme="nature"] body { background: transparent; }
+:root[data-theme="nature"] body::before {
+  content:'';position:fixed;inset:-10px;z-index:-1;
+  background:url('./bg-nature.jpg') center/cover no-repeat;
+  filter:blur(18px) brightness(1.08) saturate(0.85);
+  transform:scale(1.06);
+}
+:root[data-theme="nature"] .sidebar,
+:root[data-theme="nature"] .main-header,
+:root[data-theme="nature"] .page,
+:root[data-theme="nature"] .panel,
+:root[data-theme="nature"] .settings-card,
+:root[data-theme="nature"] .modal-content,
+:root[data-theme="nature"] .node-card,
+:root[data-theme="nature"] .crm-list-card,
+:root[data-theme="nature"] .student-card,
+:root[data-theme="nature"] .sales-card,
+:root[data-theme="nature"] .daily-card,
+:root[data-theme="nature"] .doc-card,
+:root[data-theme="nature"] .dropdown-menu,
+:root[data-theme="nature"] .toast-item {
+  backdrop-filter:blur(14px) saturate(1.4);
+  -webkit-backdrop-filter:blur(14px) saturate(1.4);
+}
+:root[data-theme="nature"] .btn-primary,
+:root[data-theme="nature"] .btn.btn-primary {
+  background:linear-gradient(135deg,#5e887e,#4a6e66);
+  border-color:transparent;
+}
+:root[data-theme="nature"] .btn-primary:hover,
+:root[data-theme="nature"] .btn.btn-primary:hover {
+  background:linear-gradient(135deg,#4a6e66,#3a5a52);
+}
+:root[data-theme="nature"] .sidebar-item.active {
+  background:rgba(94,136,126,.18);
+}
 :root{
   --bg:#0d1117;
   --surface:#161b22;

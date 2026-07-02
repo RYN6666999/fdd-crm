@@ -771,11 +771,15 @@
     try{
       var isLocal = location.hostname==='localhost'||location.hostname==='127.0.0.1';
       if('serviceWorker' in navigator && !isLocal && location.protocol==='https:'){
-        navigator.serviceWorker.register('./sw.js')
+        navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
           .then(function(r){
             console.log('[SW] 已註冊', r.scope);
-            // 每次開啟立即主動檢查有無新版本（繞過 24h 快取節流）
+            // 每次開啟立即主動檢查有無新版本
             r.update().catch(function(){});
+            // 每次使用者切回前景（從其他 app 切回 PWA）也觸發更新檢查
+            document.addEventListener('visibilitychange', function(){
+              if(document.visibilityState === 'visible') r.update().catch(function(){});
+            });
           })
           .catch(function(e){console.warn('[SW] 註冊失敗', e)});
 

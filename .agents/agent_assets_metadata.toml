@@ -1,0 +1,38 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "qj-Rlw55Tebl0iWyxQHSw"
+uri = "file://attached_assets/image_search/1_aerial_teal_lake_forest.jpg"
+type = "image"
+title = "① 空拍 — 苔綠湖 + 森林（色調最接近 Mindora）"
+
+[[outputs]]
+id = "DTifKF-NBMW7ZRsNH5dfL"
+uri = "file://attached_assets/image_search/2_misty_hillside_dawn.jpg"
+type = "image"
+title = "② 晨霧山坡 — 兩棵樹剪影，極簡"
+
+[[outputs]]
+id = "TIbv6pdufxICUjiTa02dY"
+uri = "file://attached_assets/image_search/3_green_trees_teal_lake.jpg"
+type = "image"
+title = "③ 綠樹 + 青藍湖，白雲"
+
+[[outputs]]
+id = "xEoWA_khzEVIZLJJKnxww"
+uri = "file://attached_assets/image_search/4_pine_trees_blue_lake.jpg"
+type = "image"
+title = "④ 松林 + 深藍湖，清幽"
+
+[[outputs]]
+id = "KO37YhXsuVcpbQzNSOOsN"
+uri = "file://attached_assets/image_search/5_forest_lake_mountain.jpg"
+type = "image"
+title = "⑤ 森林湖 + 山，有層次"
+
+[[outputs]]
+id = "OdTiUExtz2fYQSEDOIsWU"
+uri = "file://attached_assets/image_search/6_misty_mountain_sunrise.jpg"
+type = "image"
+title = "⑥ Unsplash 精選 — 晨霧山湖倒影，最有意境"

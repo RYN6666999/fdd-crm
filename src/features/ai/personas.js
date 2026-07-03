@@ -120,8 +120,7 @@ export const memoryService = {
   },
 
   async retrieve(message, context = {}) {
-    // Run KV memories + GBrain knowledge search in parallel
-    // Brain fetch has 250ms timeout to avoid blocking on cold start
+    // Run KV memories + GBrain knowledge search + Obsidian search in parallel
     const brainTimeout = new Promise(r => setTimeout(() => r({ results: [] }), 250));
     const brainFetch   = fetch('/api/brain', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -131,7 +130,7 @@ export const memoryService = {
     const mems = this.getMemories().filter(m => !m.archived).slice(-5);
     let promptSnippet = mems.length ? '【相關記憶】\n' + mems.map(m => `- ${m.subject} (${m.type}): ${m.content}`).join('\n') : '';
 
-    const brainResults = await Promise.race([brainFetch, brainTimeout]);
+    const [brainResults] = await Promise.all([Promise.race([brainFetch, brainTimeout])]);
 
     // Merge: KV snippet first, then brain excerpts (200 chars each)
     const brainHits = (brainResults.results || []).filter(r => r.score > 0.01);
@@ -141,6 +140,20 @@ export const memoryService = {
         ? `${promptSnippet}\n\n【相關知識庫段落】\n${brainBlock}`
         : `【相關知識庫段落】\n${brainBlock}`;
     }
+
+    // Try Obsidian search as bonus source (non-blocking, fail silently)
+    try {
+      const { searchObsidian, isObsidianLinked } = await import('../../integrations/obsidian.js');
+      if (isObsidianLinked()) {
+        const obNotes = await searchObsidian(message, 2);
+        if (obNotes.length > 0) {
+          const obBlock = obNotes.map(n => `【Obsidian：${n.filename}】\n${n.content.slice(0, 300)}`).join('\n\n');
+          promptSnippet = promptSnippet
+            ? `${promptSnippet}\n\n【相關 Obsidian 筆記】\n${obBlock}`
+            : `【相關 Obsidian 筆記】\n${obBlock}`;
+        }
+      }
+    } catch { /* obsidian not available, skip */ }
 
     return { memories: mems, promptSnippet };
   },
@@ -334,6 +347,33 @@ export async function buildSystemPrompt(personaKey, memSnippet = '', currentCont
     ? `\n【本輪對話對象】${currentContact.name}｜${STATUS_EMOJI[currentContact.status] || '未知'}｜${buildFinanceSummary(currentContact.info)}｜備注:${currentContact.info?.notes?.slice(0, 80) || '無'}\n`
     : '';
 
+  // ── 整合 Google Calendar ──────────────────────────────────────────────
+  let gcalBlock = '';
+  try {
+    const { fetchGcalEvents } = await import('../../integrations/gcal.js');
+    const gcalEvents = await fetchGcalEvents(14);
+    if (gcalEvents.length > 0) {
+      gcalBlock = '\n【Google Calendar 近期行程】\n' + gcalEvents
+        .filter(ev => ev.start?.date || ev.start?.dateTime)
+        .map(ev => {
+          const d = (ev.start?.date || ev.start?.dateTime || '').slice(0, 10);
+          const t = ev.start?.dateTime ? ev.start.dateTime.slice(11, 16) : '';
+          return '- ' + d + ' ' + t + ' ' + (ev.summary || ev.title || '無標題') + (ev.location ? ' @ ' + ev.location : '');
+        })
+        .slice(0, 10)
+        .join('\n');
+    }
+  } catch { /* gcal not available */ }
+
+  // ── Obsidian 狀態 ──────────────────────────────────────────────────────
+  let obsidianStatus = '';
+  try {
+    const { isObsidianLinked } = await import('../../integrations/obsidian.js');
+    obsidianStatus = isObsidianLinked() ? '✅ Obsidian 已連結（可讀寫筆記）' : '⚠ Obsidian 未連結（設定中可設定）';
+  } catch { obsidianStatus = '⚠ Obsidian 未設定'; }
+
+
+
   return `${persona.rolePrompt}
 ${FDD_KB}
 ${contactCtx}${memSnippet ? '\n' + memSnippet + '\n' : ''}
@@ -343,7 +383,9 @@ ${contactCtx}${memSnippet ? '\n' + memSnippet + '\n' : ''}
 【人脈概況】共 ${contactNodes.length} 人｜🟢高意願 ${green.length}（${green.map(n => n.name).join('、') || '無'}）｜🟡觀察中 ${yellow.length}｜🔴冷淡 ${red.length}
 ⚠ 超過7天未聯繫：${stale.join('、') || '無'}
 【今日活動量】邀約${todayRpt['act-invite'] ?? todayRpt.invite ?? 0} 電訪${todayRpt['act-calls'] ?? todayRpt.calls ?? 0} 表單${todayRpt['act-forms'] ?? todayRpt.forms ?? 0} 追蹤${todayRpt['act-followup'] ?? todayRpt.followup ?? 0} 成交${todayRpt['act-close'] ?? todayRpt.close ?? 0}
-【近期活動】${upcoming.length ? upcoming.join('；') : '無'}
+【近期活動】${upcoming.length ? upcoming.join('、') : '無'}
+	${gcalBlock}
+	${obsidianStatus}
 
 【聯絡人詳情】
 ${contactsDetail || '（無聯絡人）'}
@@ -357,7 +399,7 @@ ${dailyRptBlock}${studentsBlock}
   return `${icon}《${d.name}》${d.url ? '→ ' + d.url : ''}`;
 }).join('　') : '尚無文件'}
 
-【可用工具】update_contact_status / add_note / log_contact / get_followup_list / search_docs / calculate_mortgage / read_calendar_events / get_contact_detail / list_contacts / add_event / update_daily_kpi / add_sale / patch_daily_report / add_student / list_students
+【可用工具】update_contact_status / add_note / log_contact / get_followup_list / search_docs / calculate_mortgage / read_calendar_events / get_contact_detail / list_contacts / add_event / update_daily_kpi / add_sale / patch_daily_report / add_student / list_students / diagnose_position / generate_script / handle_objection / design_hell_heaven / review_conversation / read_obsidian_notes / save_to_obsidian
 【重要】當用戶要求「新增學員」、「加到學員頁」、「幫我把 XXX 加為學員」，必須呼叫 add_student 工具，不能只用文字回應。工具執行後才算完成。
 
 【海報生成】當用戶要求製作活動海報，請提取時間與地點，直接回覆以下格式：

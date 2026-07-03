@@ -146,7 +146,7 @@ export function clearChat() {
 // ── Build API request body ────────────────────────────────────────────────────
 
 function supportsStreaming(provider) {
-  return provider === 'openai' || provider === 'openrouter' || provider === 'grok' || provider === 'custom';
+  return provider === 'openai' || provider === 'openrouter' || provider === 'grok' || provider === 'custom' || provider === 'cline';
 }
 
 function toOpenAITools(crmTools) {
@@ -160,7 +160,7 @@ function buildRequestBody(provider, model, systemPrompt, messages, stream = fals
   if (provider === 'openai') {
     throw new Error('openai provider has been removed; use claude instead');
   }
-  if (provider === 'openrouter' || provider === 'custom' || provider === 'grok') {
+  if (provider === 'openrouter' || provider === 'custom' || provider === 'grok' || provider === 'cline') {
     return {
       model,
       messages: [{ role: 'system', content: systemPrompt }, ...messages],
@@ -193,6 +193,7 @@ function getEndpoint(provider, model, customEndpoint) {
   if (provider === 'grok')   return 'https://api.x.ai/v1/chat/completions';
   if (provider === 'gemini') return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
   if (provider === 'openrouter') return customEndpoint || 'https://openrouter.ai/api/v1/chat/completions';
+  if (provider === 'cline')     return 'https://api.cline.bot/api/v1/chat/completions';
   if (provider === 'custom')     return customEndpoint || '';
   // claude
   return '/api/claude';

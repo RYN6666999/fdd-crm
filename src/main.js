@@ -76,7 +76,7 @@ import {
   renderLoginCard, saveLogin, exportData, importData, clearAllData, renderShortcutsHelp,
   openSkModal, closeSkModal, resetShortcuts, saveShortcut, setCmdMode, resetCmdPolicy, renderCmdList,
   resetGoogleClientId, startSheetsOAuth, resetSheetsAuth, saveSheetsId,
-  saveObsidianPath, openObsidianVault, renderObsidianPath, OB_BACKUP,
+  saveObsidianPath, openObsidianVault, renderObsidianPath, renderObsidianSettings, saveObsidianCfg, testObsidianConn, OB_BACKUP,
 } from './features/settings/index.js';
 
 // ── Sales ─────────────────────────────────────────────────────────────────────
@@ -145,7 +145,7 @@ function navigate(page) {
     case 'ai':       renderChat(); renderQuickPrompts(getCurrentPersona()); updateAiModelBadge(); break;
     case 'settings':
       renderLoginCard(); renderAiSettingsCard(); renderGcalCard(); renderShortcutsHelp();
-      renderObsidianPath(); renderCmdList(); renderThemeGrid();
+      renderObsidianPath(); renderObsidianSettings(); updateGcalStatus(); renderCmdList(); renderThemeGrid();
       break;
   }
   hideLoading();
@@ -338,7 +338,7 @@ function registerWindowBridge() {
   window.disconnectGcal         = () => disconnectGcal();
   window.renderSettingsPage     = () => {
     renderLoginCard(); renderAiSettingsCard(); renderGcalCard(); renderShortcutsHelp();
-    renderObsidianPath(); renderCmdList(); renderThemeGrid();
+    renderObsidianPath(); renderObsidianSettings(); updateGcalStatus(); renderCmdList(); renderThemeGrid();
   };
   window.__crmApplyTheme        = (t) => { applyTheme(t); renderThemeGrid(); };
   window.doLogout = () => {
@@ -366,6 +366,8 @@ function registerWindowBridge() {
   window.saveSheetsId           = () => saveSheetsId();
   window.saveObsidianPath       = () => saveObsidianPath();
   window.openObsidianVault      = () => openObsidianVault();
+  window.saveObsidianCfg        = () => saveObsidianCfg();
+  window.testObsidianConn       = () => testObsidianConn();
   window.OB_BACKUP              = OB_BACKUP;
 
   // AI memory panel

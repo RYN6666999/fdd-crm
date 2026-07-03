@@ -49,6 +49,23 @@ export const AI_PROVIDERS = {
     modelsUrl: 'https://openrouter.ai/api/v1/models',
     dynamic: true,
   },
+  cline: {
+    label: 'Cline (ClinePass)',
+    models: [
+      'cline-pass/glm-5.2',
+      'cline-pass/kimi-k2.7-code',
+      'cline-pass/kimi-k2.6',
+      'cline-pass/deepseek-v4-pro',
+      'cline-pass/deepseek-v4-flash',
+      'cline-pass/mimo-v2.5',
+      'cline-pass/mimo-v2.5-pro',
+      'cline-pass/minimax-m3',
+      'cline-pass/qwen3.7-max',
+      'cline-pass/qwen3.7-plus',
+    ],
+    keyPlaceholder: 'sk_…',
+    endpoint: 'https://api.cline.bot/api/v1/chat/completions',
+  },
   custom: {
     label: '自定義',
     models: [],
@@ -60,7 +77,7 @@ export const AI_PROVIDERS = {
 
 /** @returns {{ provider, model, apiKey, endpoint }} */
 export function getAiSettings() {
-  let provider = localStorage.getItem(K.aiProvider) || 'openrouter';
+  let provider = localStorage.getItem(K.aiProvider) || 'cline';
   if (provider === 'openai') {
     console.warn('[ai] openai provider deprecated, falling back to claude');
     provider = 'claude';
@@ -68,9 +85,9 @@ export function getAiSettings() {
   }
   return {
     provider,
-    model:    localStorage.getItem(K.aiModel)     || 'deepseek/deepseek-chat',
+    model:    localStorage.getItem(K.aiModel)     || 'cline-pass/glm-5.2',
     apiKey:   localStorage.getItem(K.apiKey)      || '',
-    endpoint: localStorage.getItem(K.aiEndpoint)  || 'https://openrouter.ai/api/v1/chat/completions',
+    endpoint: localStorage.getItem(K.aiEndpoint)  || 'https://api.cline.bot/api/v1/chat/completions',
   };
 }
 

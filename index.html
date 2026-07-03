@@ -544,6 +544,7 @@
             <option value="gemini">Gemini (Google)</option>
             <option value="grok">Grok (xAI)</option>
             <option value="openrouter">OpenRouter</option>
+            <option value="cline">Cline (ClinePass)</option>
             <option value="custom">自定義</option>
           </select>
           <select class="field-input" id="ai-model-select" onchange="saveAiSettings()" style="flex:1;min-width:160px"></select>
@@ -594,12 +595,20 @@
     <!-- Obsidian -->
     <div class="settings-card">
       <div class="settings-card-title">🗂 Obsidian 連結</div>
-      <div class="settings-card-desc">設定 Obsidian Vault 目錄路徑，Agent 可調用相關筆記擴充人脈資料。</div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <input class="field-input" id="obsidian-path" placeholder="/Users/你的名字/ObsidianVault" style="flex:1;min-width:200px" oninput="saveObsidianPath()">
-        <button class="btn btn-accent" onclick="openObsidianVault()">📂 開啟 Vault</button>
+      <div class="settings-card-desc">AI 對話時可自動搜尋 Obsidian 筆記，結束後也可將摘要存回。需安裝 <a href="https://github.com/coddingtonbear/obsidian-local-rest-api" target="_blank" rel="noopener" style="color:var(--accent)">Local REST API</a> 插件。</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <label style="font-size:11px;color:var(--text-muted);white-space:nowrap">API URL</label>
+          <input class="field-input" id="obsidian-url" placeholder="http://localhost:27123" style="flex:1;min-width:150px;font-size:12px;font-family:monospace">
+          <label style="font-size:11px;color:var(--text-muted);white-space:nowrap">Token</label>
+          <input class="field-input" id="obsidian-token" type="password" placeholder="插件設定中的 API Key" style="flex:1;min-width:150px;font-size:12px;font-family:monospace">
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-accent" onclick="saveObsidianCfg()">💾 儲存</button>
+          <button class="btn" onclick="testObsidianConn()">🔄 測試連線</button>
+          <span id="obsidian-conn-status" style="font-size:11px;color:var(--text-muted)">尚未設定</span>
+        </div>
       </div>
-      <div id="obsidian-status" style="font-size:11px;color:var(--text-muted);margin-top:6px"></div>
     </div>
 
     <!-- Obsidian Auto Backup -->
@@ -783,22 +792,21 @@
           })
           .catch(function(e){console.warn('[SW] 註冊失敗', e)});
 
-        // SW 接管後強制 reload（加 bust 參數跳過快取）
-        var _reloading = sessionStorage.getItem("crm-sw-reloaded");
-        navigator.serviceWorker.addEventListener('controllerchange', function(){
-          if(_reloading) return;
-          _reloading = "1";
-          sessionStorage.setItem("crm-sw-reloaded", "1");
-          console.log('[SW] 新版本已接管，強制更新頁面');
-          var t = document.createElement('div');
-          t.textContent = '✅ 偵測到新版本，正在更新…';
-          t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,.4)';
-          document.body && document.body.appendChild(t);
-          setTimeout(function(){
-            var url = location.pathname + '?bust=' + Date.now();
-            window.location.replace(url);
-          }, 800);
-        });
+      // 監聽 SW 發送的更新訊息（新版 activate 後通知）
+      navigator.serviceWorker.addEventListener('message', function(ev){
+        if(ev.data && ev.data.type === 'SW_UPDATED'){
+          console.log('[SW] 新版本已安裝:', ev.data.cache);
+          window.location.reload();
+        }
+      });
+
+      // SW 接管後強制 reload（controllerchange 事件）
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if(sessionStorage.getItem("crm-sw-reloaded")) return;
+        sessionStorage.setItem("crm-sw-reloaded", "1");
+        console.log('[SW] 新版本已接管，reload');
+        window.location.reload();
+      });
       }
     }catch(e){}
   })();
@@ -880,6 +888,6 @@
 </script>
 </div><!-- /.main-content -->
 </div><!-- /.app-layout -->
-<script type="module" src="src/main.js?v=1782713797"></script>
+<script type="module" src="src/main.js?bust=204"></script>
 </body>
 </html>

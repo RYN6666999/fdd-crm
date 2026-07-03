@@ -256,6 +256,30 @@ export const CRM_TOOLS = [
       required: ['name', 'result'],
     },
   },
+  {
+    name: 'read_obsidian_notes',
+    description: '從 Obsidian 知識庫搜尋並讀取相關筆記（客戶訪談記錄、策略筆記等）',
+    input_schema: {
+      type: 'object',
+      required: ['query'],
+      properties: {
+        query: { type: 'string', description: '搜尋關鍵字（客戶姓名、主題等）' },
+        limit: { type: 'number', description: '最多回傳幾份筆記，預設 3' },
+      },
+    },
+  },
+  {
+    name: 'save_to_obsidian',
+    description: '將內容儲存到 Obsidian 知識庫（客戶跟進摘要、策略筆記、日報備份等）',
+    input_schema: {
+      type: 'object',
+      required: ['filename', 'content'],
+      properties: {
+        filename: { type: 'string', description: '檔案名稱，例如「客戶/王大明-2026-07-03.md」' },
+        content:  { type: 'string', description: 'Markdown 內容' },
+      },
+    },
+  },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -561,6 +585,20 @@ export async function executeToolCall(name, input = {}) {
         product: input.product || '',
         productLabel: productLabels[input.product] || '',
       };
+    }
+
+    case 'read_obsidian_notes': {
+      const { searchObsidian } = await import('../../integrations/obsidian.js');
+      const results = await searchObsidian(input.query || '', input.limit || 3);
+      if (!results.length) return { ok: true, count: 0, message: '在 Obsidian 中未找到相關筆記', notes: [] };
+      return { ok: true, count: results.length, notes: results.map(r => ({ filename: r.filename, snippet: r.content })) };
+    }
+
+    case 'save_to_obsidian': {
+      const { backupToObsidian, isObsidianLinked } = await import('../../integrations/obsidian.js');
+      if (!isObsidianLinked()) return { ok: false, error: 'Obsidian 尚未連結，請先在設定中設定 Obsidian URL 和 Token' };
+      await backupToObsidian(input.content, input.filename);
+      return { ok: true, message: `✅ 已儲存至 Obsidian: ${input.filename}` };
     }
 
     default:

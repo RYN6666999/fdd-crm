@@ -426,6 +426,55 @@ export function renderObsidianPath() {
   if (el) el.value = localStorage.getItem('crm-obsidian-path') || '';
 }
 
+// ── Obsidian API settings (Local REST API) ──────────────────────────────
+
+export function renderObsidianSettings() {
+  const urlEl = document.getElementById('obsidian-url');
+  const tokEl = document.getElementById('obsidian-token');
+  if (urlEl) urlEl.value = localStorage.getItem('crm-obsidian-url') || 'http://localhost:27123';
+  if (tokEl) tokEl.value = localStorage.getItem('crm-obsidian-token') || '';
+  updateObsidianStatus();
+}
+
+export function saveObsidianCfg() {
+  const url = document.getElementById('obsidian-url')?.value.trim() || 'http://localhost:27123';
+  const tok = document.getElementById('obsidian-token')?.value.trim() || '';
+  localStorage.setItem('crm-obsidian-url', url);
+  localStorage.setItem('crm-obsidian-token', tok);
+  updateObsidianStatus();
+  toast('Obsidian 設定已儲存');
+}
+
+export async function testObsidianConn() {
+  const btn = document.getElementById('obsidian-conn-status');
+  if (btn) btn.textContent = '⏳ 測試中…';
+  try {
+    const { isObsidianLinked, searchObsidian } = await import('../../integrations/obsidian.js');
+    const linked = isObsidianLinked();
+    if (!linked) {
+      if (btn) btn.textContent = '❌ 請先填入 API URL 和 Token 並儲存';
+      return;
+    }
+    const results = await searchObsidian('test', 1);
+    if (btn) btn.textContent = results.length !== null
+      ? '✅ 連線成功！Obsidian 可讀寫'
+      : '⚠ 連線成功但無法讀取檔案（檢查 Token 權限）';
+    toast('Obsidian 連線測試完成');
+  } catch (e) {
+    const el = document.getElementById('obsidian-conn-status');
+    if (el) el.textContent = '❌ 連線失敗：' + e.message.slice(0, 60);
+    toast('Obsidian 測試失敗');
+  }
+}
+
+function updateObsidianStatus() {
+  const el = document.getElementById('obsidian-conn-status');
+  if (!el) return;
+  const hasToken = !!localStorage.getItem('crm-obsidian-token');
+  const hasUrl   = !!localStorage.getItem('crm-obsidian-url');
+  el.textContent = hasToken && hasUrl ? '⚙ 已設定（可點「測試連線」驗證）' : '尚未設定';
+}
+
 // ── OB_BACKUP object (File System Access API) ─────────────────────────────────
 
 export const OB_BACKUP = {

@@ -16,5 +16,8 @@
   "devDependencies": {
     "csso-cli": "^4.0.2",
     "purgecss": "^8.0.0"
+  },
+  "dependencies": {
+    "playwright": "^1.61.1"
   }
 }

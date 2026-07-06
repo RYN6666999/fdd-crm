@@ -5,7 +5,7 @@
      圖片/字型   → Cache-First（離線可用）
    版本號每次部署+1 → 確保 SW 更新
    ═══════════════════════════════════════ */
-const CACHE = 'fdd-crm-v205';
+const CACHE = 'fdd-crm-v206';
 const PRECACHE = [
   './icon.svg',
   './icon-192.png',

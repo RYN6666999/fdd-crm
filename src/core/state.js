@@ -17,11 +17,47 @@ import { migrateNodes, migrateStudents } from './migrate.js';
 import { validateNode } from '../contracts/node.js';
 import { validateStudent } from '../contracts/student.js';
 
-// 每 10 次寫入觸發一次快照
+// 每 10 次寫入觸發一次本地快照 + 遠端備份
 let _writeCount = 0;
 function _maybeSnapshot() {
   _writeCount++;
-  if (_writeCount % 10 === 0) autoSnapshot();
+  if (_writeCount % 10 === 0) {
+    autoSnapshot();
+    _maybeBackup(true); // 滿 10 次強制備份
+  }
+}
+
+// ── Auto backup to Cloudflare KV ────────────────────────────────────────────
+// 每 5 次寫入觸發一次遠端備份（fire-and-forget）
+let _backupCount = 0;
+function _maybeBackup(force) {
+  if (!force) {
+    _backupCount++;
+    if (_backupCount % 5 !== 0) return;
+  }
+  try {
+    const payload = {
+      _schema: 1,
+      nodes:               _state.nodes,
+      events:              _state.events,
+      tasks:               _state.tasks,
+      chatHistory:         _state.chatHistory,
+      studentsData:        _state.studentsData,
+      salesData:           _state.salesData,
+      dailyReports:        _state.dailyReports,
+      monthlyGoals:        _state.monthlyGoals,
+      monthlySalesTargets: _state.monthlySalesTargets,
+      docsData:            _state.docsData,
+    };
+    const deviceId = localStorage.getItem('crm-device-id') || '';
+    fetch('/api/backup', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Device-Id': deviceId },
+      body: JSON.stringify(payload),
+    }).catch(() => {}); // fire-and-forget
+  } catch (e) {
+    console.warn('[AutoBackup]', e);
+  }
 }
 
 // ── Internal state ────────────────────────────────────────────────────────────
@@ -169,27 +205,27 @@ export function dispatch(action) {
       break;
 
     // ── Events ──
-    case 'EVENTS_SET':   _state.events = action.payload; STORE.saveEvents(_state.events); break;
-    case 'EVENT_ADD':    _state.events.push(action.payload); STORE.saveEvents(_state.events); cloudPush('events', _state.events); break;
-    case 'EVENT_UPDATE': _updateById(_state.events, action.payload); STORE.saveEvents(_state.events); cloudPush('events', _state.events); break;
-    case 'EVENT_DELETE': _state.events = _state.events.filter(e => e.id !== action.payload); STORE.saveEvents(_state.events); cloudPush('events', _state.events); break;
+    case 'EVENTS_SET':   _state.events = action.payload; STORE.saveEvents(_state.events); _maybeBackup(); break;
+    case 'EVENT_ADD':    _state.events.push(action.payload); STORE.saveEvents(_state.events); cloudPush('events', _state.events); _maybeBackup(); break;
+    case 'EVENT_UPDATE': _updateById(_state.events, action.payload); STORE.saveEvents(_state.events); cloudPush('events', _state.events); _maybeBackup(); break;
+    case 'EVENT_DELETE': _state.events = _state.events.filter(e => e.id !== action.payload); STORE.saveEvents(_state.events); cloudPush('events', _state.events); _maybeBackup(); break;
 
     // ── Tasks ──
-    case 'TASKS_SET':   _state.tasks = action.payload; STORE.saveTasks(_state.tasks); break;
-    case 'TASK_ADD':    _state.tasks.push(action.payload); STORE.saveTasks(_state.tasks); break;
-    case 'TASK_UPDATE': _updateById(_state.tasks, action.payload); STORE.saveTasks(_state.tasks); break;
-    case 'TASK_DELETE': _state.tasks = _state.tasks.filter(t => t.id !== action.payload); STORE.saveTasks(_state.tasks); break;
+    case 'TASKS_SET':   _state.tasks = action.payload; STORE.saveTasks(_state.tasks); _maybeBackup(); break;
+    case 'TASK_ADD':    _state.tasks.push(action.payload); STORE.saveTasks(_state.tasks); _maybeBackup(); break;
+    case 'TASK_UPDATE': _updateById(_state.tasks, action.payload); STORE.saveTasks(_state.tasks); _maybeBackup(); break;
+    case 'TASK_DELETE': _state.tasks = _state.tasks.filter(t => t.id !== action.payload); STORE.saveTasks(_state.tasks); _maybeBackup(); break;
 
     // ── Chat ──
-    case 'CHAT_SET':   _state.chatHistory = action.payload; STORE.saveChat(_state.chatHistory); break;
-    case 'CHAT_PUSH':  _state.chatHistory.push(action.payload); STORE.saveChat(_state.chatHistory); break;
-    case 'CHAT_CLEAR': _state.chatHistory = []; STORE.saveChat([]); break;
+    case 'CHAT_SET':   _state.chatHistory = action.payload; STORE.saveChat(_state.chatHistory); _maybeBackup(); break;
+    case 'CHAT_PUSH':  _state.chatHistory.push(action.payload); STORE.saveChat(_state.chatHistory); _maybeBackup(); break;
+    case 'CHAT_CLEAR': _state.chatHistory = []; STORE.saveChat([]); _maybeBackup(); break;
 
     // ── Students ──
     case 'STUDENTS_SET':
-      // 讀取時：寬容模式 — 補齊舊欄位
       _state.studentsData = migrateStudents(action.payload);
       STORE.saveStudents(_state.studentsData);
+      _maybeBackup();
       break;
     case 'STUDENT_ADD': {
       const sAddResult = validateStudent(action.payload);
@@ -199,6 +235,7 @@ export function dispatch(action) {
       }
       _state.studentsData.push(action.payload);
       STORE.saveStudents(_state.studentsData);
+      _maybeBackup();
       break;
     }
     case 'STUDENT_UPDATE': {
@@ -212,21 +249,23 @@ export function dispatch(action) {
         }
         _state.studentsData[sIdx] = sUpdated;
         STORE.saveStudents(_state.studentsData);
+        _maybeBackup();
       }
       break;
     }
-    case 'STUDENT_DELETE': _state.studentsData = _state.studentsData.filter(s => s.id !== action.payload); STORE.saveStudents(_state.studentsData); break;
+    case 'STUDENT_DELETE': _state.studentsData = _state.studentsData.filter(s => s.id !== action.payload); STORE.saveStudents(_state.studentsData); _maybeBackup(); break;
 
     // ── Sales ──
-    case 'SALES_SET':   _state.salesData = action.payload; STORE.saveSales(_state.salesData); break;
-    case 'SALE_ADD':    _state.salesData.push(action.payload); STORE.saveSales(_state.salesData); cloudPush('sales', _state.salesData); break;
-    case 'SALE_UPDATE': _updateById(_state.salesData, action.payload); STORE.saveSales(_state.salesData); cloudPush('sales', _state.salesData); break;
-    case 'SALE_DELETE': _state.salesData = _state.salesData.filter(s => s.id !== action.payload); STORE.saveSales(_state.salesData); cloudPush('sales', _state.salesData); break;
+    case 'SALES_SET':   _state.salesData = action.payload; STORE.saveSales(_state.salesData); _maybeBackup(); break;
+    case 'SALE_ADD':    _state.salesData.push(action.payload); STORE.saveSales(_state.salesData); cloudPush('sales', _state.salesData); _maybeBackup(); break;
+    case 'SALE_UPDATE': _updateById(_state.salesData, action.payload); STORE.saveSales(_state.salesData); cloudPush('sales', _state.salesData); _maybeBackup(); break;
+    case 'SALE_DELETE': _state.salesData = _state.salesData.filter(s => s.id !== action.payload); STORE.saveSales(_state.salesData); cloudPush('sales', _state.salesData); _maybeBackup(); break;
 
     // ── Daily ──
     case 'DAILY_REPORTS_SET':
       _state.dailyReports = action.payload;
       STORE.saveDailyReports(_state.dailyReports);
+      _maybeBackup();
       break;
     case 'DAILY_REPORT_PATCH':
       _state.dailyReports[action.payload.date] = {
@@ -235,6 +274,7 @@ export function dispatch(action) {
       };
       STORE.saveDailyReports(_state.dailyReports);
       cloudPush('dailyReports', _state.dailyReports);
+      _maybeBackup();
       break;
 
     // ── Monthly goals / targets ──
@@ -256,10 +296,10 @@ export function dispatch(action) {
       break;
 
     // ── Docs ──
-    case 'DOCS_SET':   _state.docsData = action.payload; STORE.saveDocs(_state.docsData); break;
-    case 'DOC_ADD':    _state.docsData.push(action.payload); STORE.saveDocs(_state.docsData); break;
-    case 'DOC_UPDATE': _updateById(_state.docsData, action.payload); STORE.saveDocs(_state.docsData); break;
-    case 'DOC_DELETE': _state.docsData = _state.docsData.filter(d => d.id !== action.payload); STORE.saveDocs(_state.docsData); break;
+    case 'DOCS_SET':   _state.docsData = action.payload; STORE.saveDocs(_state.docsData); _maybeBackup(); break;
+    case 'DOC_ADD':    _state.docsData.push(action.payload); STORE.saveDocs(_state.docsData); _maybeBackup(); break;
+    case 'DOC_UPDATE': _updateById(_state.docsData, action.payload); STORE.saveDocs(_state.docsData); _maybeBackup(); break;
+    case 'DOC_DELETE': _state.docsData = _state.docsData.filter(d => d.id !== action.payload); STORE.saveDocs(_state.docsData); _maybeBackup(); break;
 
     default:
       console.warn('[state] Unknown action:', action.type);

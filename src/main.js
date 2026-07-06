@@ -5,7 +5,7 @@
  */
 
 // ── Core ──────────────────────────────────────────────────────────────────────
-import { STORE } from './core/store.js';
+import { STORE, listSnapshots, restoreSnapshot, autoSnapshot } from './core/store.js';
 import { dispatch, getNodes, getDailyReports, gatherSubtree, isHidden } from './core/state.js';
 import { toast } from './core/toast.js';
 import { captureError, installGlobalCapture, loadLog, clearLog } from './core/error-monitor.js';
@@ -90,7 +90,7 @@ import {
 import { setCrmView, toggleCrmSortDir, renderListView } from './features/canvas/views.js';
 
 // ── Google Calendar ───────────────────────────────────────────────────────────
-import { renderGcalCard, startGcalOAuth, disconnectGcal, fetchGcalEvents } from './integrations/gcal.js';
+import { renderGcalCard, startGcalOAuth, disconnectGcal, fetchGcalEvents, updateGcalStatus } from './integrations/gcal.js';
 
 // ── Cloud Sync ────────────────────────────────────────────────────────────────
 import { cloudLoadAll, cloudPush, setCloudToken, getCloudToken, testCloudConnection } from './core/cloud-sync.js';
@@ -195,6 +195,46 @@ async function syncFromCloud() {
   }
   console.log('[Cloud] 同步完成，已更新:', Object.keys(remote).join(', '));
   renderNodes(); drawEdges(); updateStats();
+}
+
+/** 當 localStorage 無資料時，從 KV 自動備份還原 */
+async function tryRestoreFromBackup() {
+  // 只有 localStorage 完全無節點資料時才嘗試還原
+  const existing = STORE.loadNodes();
+  if (existing && existing.length > 0) return;
+
+  try {
+    const res = await fetch('/api/backup');
+    if (!res.ok) return;
+    const { data } = await res.json();
+    if (!data || !data.data) return;
+    const backup = data.data;
+
+    const TYPE_MAP = {
+      nodes:               'NODES_LOAD',
+      events:              'EVENTS_SET',
+      sales:               'SALES_SET',
+      dailyReports:        'DAILY_REPORTS_SET',
+      monthlyGoals:        'MONTHLY_GOALS_SET',
+      monthlySalesTargets: 'MONTHLY_SALES_TARGETS_SET',
+      docs:                'DOCS_SET',
+      students:            'STUDENTS_SET',
+    };
+    for (const [key, type] of Object.entries(TYPE_MAP)) {
+      if (backup[key] != null && (!Array.isArray(backup[key]) || backup[key].length > 0)) {
+        STORE['save' + key.charAt(0).toUpperCase() + key.slice(1)]?.(backup[key]);
+        dispatch({ type, payload: backup[key] });
+      }
+    }
+    if (backup.chatHistory?.length) {
+      STORE.saveChat(backup.chatHistory);
+      dispatch({ type: 'CHAT_SET', payload: backup.chatHistory });
+    }
+    console.log('[AutoRestore] ✅ 已從遠端備份還原資料');
+    renderNodes(); drawEdges(); updateStats();
+  } catch (e) {
+    console.warn('[AutoRestore] 備份還原失敗:', e);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -341,6 +381,7 @@ function registerWindowBridge() {
     renderObsidianPath(); renderObsidianSettings(); updateGcalStatus(); renderCmdList(); renderThemeGrid();
   };
   window.__crmApplyTheme        = (t) => { applyTheme(t); renderThemeGrid(); };
+  window.applyTheme             = window.__crmApplyTheme;
   window.doLogout = () => {
     if (!confirm('確定要登出？')) return;
     localStorage.removeItem('crm-login');
@@ -391,6 +432,11 @@ function registerWindowBridge() {
   window.modalFileDrop          = e => modalFileDrop(e);
   window.modalFileChange        = el => modalFileChange(el);
   window.onDocTypeChange        = () => onDocTypeChange();
+
+  // Snapshot restore (settings page)
+  window.__crmListSnapshots     = () => listSnapshots();
+  window.__crmAutoSnapshot      = () => autoSnapshot();
+  window.__crmRestoreSnapshot   = idx => restoreSnapshot(idx);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -403,12 +449,12 @@ function initKeyboard() {
     const inInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag);
     const meta  = e.metaKey || e.ctrlKey;
 
+    if (inInput) return;
+
     if (meta && e.key === 'z') { e.preventDefault(); undoLast(renderNodes, deselect); return; }
     if (meta && e.key === 'c') { e.preventDefault(); copySelected(); return; }
     if (meta && e.key === 'x') { e.preventDefault(); cutSelected();  return; }
     if (meta && e.key === 'v') { e.preventDefault(); pasteClipboard(); return; }
-
-    if (inInput) return;
 
     switch (e.key) {
       case 'Delete': case 'Backspace': {
@@ -486,6 +532,10 @@ function wireDependencies() {
 export async function init() {
   initTheme();
   loadData();           // 先從 localStorage 載（即時可用）
+
+  // 如果 localStorage 無資料，從 KV 自動備份還原
+  await tryRestoreFromBackup();
+
   wireDependencies();
   registerWindowBridge();
   initCanvas();
@@ -516,6 +566,22 @@ export async function init() {
   window.__crmGetCloudToken     = getCloudToken;
   window.__crmTestCloudConn     = testCloudConnection;
   window.__crmCloudPush         = cloudPush;
+
+  // 關閉頁面前強制備份（直接用 localStorage 資料，不需 import）
+  window.addEventListener('beforeunload', () => {
+    try {
+      const deviceId = localStorage.getItem('crm-device-id') || '';
+      const data = {};
+      const LS_KEYS = ['crm-nodes','crm-events','crm-sales','crm-daily-reports','crm-monthly-goals',
+        'crm-monthly-sales-targets','crm-docs','crm-students','crm-chat'];
+      LS_KEYS.forEach(k => {
+        const raw = localStorage.getItem(k);
+        if (raw && raw !== 'null' && raw !== '[]') data[k.replace('crm-','').replace(/-/g,'')] = JSON.parse(raw);
+      });
+      navigator.sendBeacon('/api/backup',
+        JSON.stringify({ _schema: 1, ...data }));
+    } catch (e) { /* silent */ }
+  });
 
   console.log('[CRM] init complete');
 }

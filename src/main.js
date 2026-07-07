@@ -626,9 +626,9 @@ window.__crmDiag = function() {
   console.log(`localStorage crm-nodes: ${JSON.parse(localStorage.getItem('crm-nodes')||'[]').length} 個節點`);
   console.log(`%c功能清單:`, 'font-weight:bold');
   const fns = {
-    '📤 匯出試算表': !!window.exportDailyCSV,
-    '📋 做過問卷按鈕': !!window.__crmToggleQuick,
-    '📖 溝通本按鈕': !!window.__crmToggleQuick,
+    '匯出試算表': !!window.exportDailyCSV,
+    '做過問卷按鈕': !!window.__crmToggleQuick,
+    '溝通本按鈕': !!window.__crmToggleQuick,
   };
   Object.entries(fns).forEach(([k, v]) => console.log(`  ${v?'✅':'❌'} ${k}`));
   console.log(`%c如果你看到 ❌ → 代表你載入的是舊版 JS，請強制重新整理`, 'color:#ff8040');
@@ -659,7 +659,7 @@ window.toggleErrorPanel = function() {
   const header = document.createElement('div');
   header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #333;position:sticky;top:0;background:#1a1a1a';
   header.innerHTML = `<span style="color:#ff8080;font-weight:700">✕ 錯誤紀錄 (${errors.length})</span>
-    <span onclick="clearErrorPanel()" style="cursor:pointer;color:#888;font-size:11px">🗑 清除</span>`;
+    <span onclick="clearErrorPanel()" style="cursor:pointer;color:#888;font-size:11px">清除</span>`;
   panel.appendChild(header);
   if (errors.length === 0) {
     const empty = document.createElement('div');
@@ -707,7 +707,7 @@ function bootWithErrorReport() {
     console.error('[CRM BOOT ERROR]', err);
     const div = document.createElement('div');
     div.style.cssText = 'position:fixed;top:60px;left:0;right:0;z-index:99999;background:#3a0000;color:#ff8080;padding:16px;font-size:13px;font-family:monospace;white-space:pre-wrap;overflow:auto;max-height:40vh';
-    div.textContent = '⚠️ 啟動錯誤（請截圖回報）:\n' + (err?.stack || err);
+    div.textContent = '⚠啟動錯誤（請截圖回報）:\n' + (err?.stack || err);
     document.body?.appendChild(div);
   });
 }

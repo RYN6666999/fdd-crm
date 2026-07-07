@@ -109,7 +109,7 @@
     </button>
   </div>
   <div class="sidebar-footer">
-    <span class="sidebar-user" id="sidebar-user">👤</span>
+    <span class="sidebar-user" id="sidebar-user"></span>
     <button class="sidebar-logout" onclick="doLogout()" title="登出">⏏</button>
   </div>
 </nav>
@@ -124,7 +124,7 @@
   <div class="header-stats" id="header-stats"></div>
   <div class="header-actions">
     <button class="btn btn-accent" onclick="headerAddNode()">＋ 新增聯繫人</button>
-    <button class="btn" style="padding:.4rem .8rem;background:var(--surface2);border:1px solid var(--border)" onclick="headerAddNote()" title="新增純文字便條">📝 便條</button>
+    <button class="btn" style="padding:.4rem .8rem;background:var(--surface2);border:1px solid var(--border)" onclick="headerAddNote()" title="新增純文字便條">便條</button>
     <span id="header-user-badge" style="font-size:.8rem;color:var(--text-muted)"></span>
   </div>
 </div>
@@ -157,11 +157,11 @@
 <!-- CRM Page -->
 <div class="page" id="page-crm">
   <div class="crm-view-bar">
-    <button class="crm-view-btn active" id="vbtn-tree" onclick="setCrmView('tree')">🌳 樹狀圖</button>
-    <button class="crm-view-btn" id="vbtn-graph" onclick="setCrmView('graph')">🕸 人脈圖</button>
-    <button class="crm-view-btn" id="vbtn-region" onclick="setCrmView('region')">📍 地區</button>
-    <button class="crm-view-btn" id="vbtn-status" onclick="setCrmView('status')">🔵 狀態</button>
-    <button class="crm-view-btn" id="vbtn-contact" onclick="setCrmView('contact')">📅 最近聯繫</button>
+    <button class="crm-view-btn active" id="vbtn-tree" onclick="setCrmView('tree')">樹狀圖</button>
+    <button class="crm-view-btn" id="vbtn-graph" onclick="setCrmView('graph')">人脈圖</button>
+    <button class="crm-view-btn" id="vbtn-region" onclick="setCrmView('region')">地區</button>
+    <button class="crm-view-btn" id="vbtn-status" onclick="setCrmView('status')">狀態</button>
+    <button class="crm-view-btn" id="vbtn-contact" onclick="setCrmView('contact')">最近聯繫</button>
     <button class="crm-sort-btn" id="crm-sort-dir-btn" onclick="toggleCrmSortDir()" title="排序方向" style="display:none">↑ 升冪</button>
   </div>
   <div id="canvas-container">
@@ -175,7 +175,7 @@
     <span id="zoom-label">100%</span>
     <button onclick="zoomBy(0.87)" title="縮小 (Ctrl+-)">−</button>
     <button onclick="fitView()" title="適合視窗 (F)">⊡</button>
-    <button onclick="forceLayout()" title="整理排列" style="font-size:12px">⚡整理</button>
+    <button onclick="forceLayout()" title="整理排列" style="font-size:12px">整理</button>
     <button onclick="openSkModal()" title="快捷鍵設定">⌨</button>
   </div>
   <div class="shortcuts-hint" id="shortcuts-hint"></div>
@@ -187,16 +187,16 @@
 <!-- Events Page -->
 <div class="page" id="page-events">
   <div style="display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);align-items:center">
-    <button id="cal-tab-gcal" class="btn btn-sm" onclick="window.__crmSwitchCalView?.('gcal')">📅 個人日曆</button>
-    <button id="cal-tab-crm" class="btn btn-sm" onclick="window.__crmSwitchCalView?.('crm')">🎯 業務活動</button>
-    <button class="btn btn-sm" onclick="window.__crmEditGcalUrl?.()" style="margin-left:auto" title="設定個人日曆嵌入網址">⚙️</button>
+    <button id="cal-tab-gcal" class="btn btn-sm" onclick="window.__crmSwitchCalView?.('gcal')">個人日曆</button>
+    <button id="cal-tab-crm" class="btn btn-sm" onclick="window.__crmSwitchCalView?.('crm')">業務活動</button>
+    <button class="btn btn-sm" onclick="window.__crmEditGcalUrl?.()" style="margin-left:auto" title="設定個人日曆嵌入網址">日曆設定</button>
   </div>
 
   <div id="cal-pane-gcal" style="display:none;height:calc(100vh - 110px)">
     <iframe id="cal-gcal-iframe" src="about:blank" style="width:100%;height:100%;border:0;display:none"></iframe>
     <div id="cal-gcal-empty" style="padding:32px;text-align:center;color:var(--text-muted);line-height:1.7">
       尚未設定個人日曆<br>
-      點右上角 ⚙️ 貼上 Google Calendar 嵌入網址<br>
+      點右上角「日曆設定」貼上 Google Calendar 嵌入網址<br>
       <small>(GCal → 設定 → 我的日曆 → 整合日曆 → 嵌入程式碼，複製 src 的網址)</small>
     </div>
   </div>
@@ -235,21 +235,21 @@
     <div class="ai-topbar">
       <span id="ai-model-badge" class="ai-model-badge">模型：—</span>
       <span style="flex:1"></span>
-      <button class="btn btn-sm" onclick="generateDailyBriefing()" title="生成今日 AI 簡報">🌅 今日簡報</button>
-      <button class="btn btn-sm" id="mem-toggle-btn" onclick="toggleMemPanel()" title="記憶庫">🧠 記憶</button>
-      <button class="btn btn-sm" onclick="switchPage('settings')">⚙ 設定</button>
-      <button class="btn btn-sm" onclick="toggleAiDiag()" title="診斷 AI 連線">🔍 診斷</button>
+      <button class="btn btn-sm" onclick="generateDailyBriefing()" title="生成今日 AI 簡報">今日簡報</button>
+      <button class="btn btn-sm" id="mem-toggle-btn" onclick="toggleMemPanel()" title="記憶庫">記憶</button>
+      <button class="btn btn-sm" onclick="switchPage('settings')">設定</button>
+      <button class="btn btn-sm" onclick="toggleAiDiag()" title="診斷 AI 連線">診斷</button>
       <button class="btn btn-sm" onclick="smartClearChat()">清除</button>
     </div>
 
     <!-- AI Diagnostic Panel -->
     <div id="ai-diag-panel" style="display:none;border:1px solid var(--border);border-radius:10px;margin:8px 0;padding:12px 14px;background:var(--bg-card);font-size:13px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <strong>🔍 AI 連線診斷</strong>
+        <strong>AI 連線診斷</strong>
         <button class="btn btn-sm" onclick="toggleAiDiag()" style="padding:2px 8px">✕</button>
       </div>
       <div id="ai-diag-config" style="margin-bottom:10px"></div>
-      <button class="btn btn-accent btn-sm" id="ai-diag-run-btn" onclick="runAiDiagnostic()" style="width:100%;margin-bottom:8px">🚀 測試連線</button>
+      <button class="btn btn-accent btn-sm" id="ai-diag-run-btn" onclick="runAiDiagnostic()" style="width:100%;margin-bottom:8px">測試連線</button>
       <pre id="ai-diag-log" style="margin:0;font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-all;min-height:24px"></pre>
     </div>
 
@@ -263,7 +263,7 @@
           <button class="mem-tab" data-type="episode" onclick="switchMemTab('episode',this)">紀錄</button>
           <button class="mem-tab" data-type="style" onclick="switchMemTab('style',this)">偏好</button>
         </div>
-        <input class="mem-search" id="mem-search" type="text" placeholder="🔍 搜尋記憶…" oninput="renderMemPanel()">
+        <input class="mem-search" id="mem-search" type="text" placeholder="搜尋記憶…" oninput="renderMemPanel()">
       </div>
       <div class="mem-list" id="mem-list"><div class="mem-empty">載入中…</div></div>
       <div class="mem-add-bar">
@@ -279,10 +279,10 @@
     <!-- Persona pills -->
     <div class="ai-persona-bar" id="ai-persona-bar">
       <span class="ai-persona-label">角色：</span>
-      <button class="persona-pill active" data-persona="assistant" onclick="setPersona('assistant',this)">🤖 通用助理</button>
-      <button class="persona-pill" data-persona="analyst" onclick="setPersona('analyst',this)">📊 業績分析師</button>
-      <button class="persona-pill" data-persona="secretary" onclick="setPersona('secretary',this)">📝 日報小秘書</button>
-      <button class="persona-pill" data-persona="scriptforge" onclick="setPersona('scriptforge',this)">🎯 沙盤推演</button>
+      <button class="persona-pill active" data-persona="assistant" onclick="setPersona('assistant',this)">通用助理</button>
+      <button class="persona-pill" data-persona="analyst" onclick="setPersona('analyst',this)">業績分析師</button>
+      <button class="persona-pill" data-persona="secretary" onclick="setPersona('secretary',this)">日報小秘書</button>
+      <button class="persona-pill" data-persona="scriptforge" onclick="setPersona('scriptforge',this)">沙盤推演</button>
     </div>
 
     <!-- Quick prompts -->
@@ -296,7 +296,7 @@
 
     <!-- Input area -->
     <div class="chat-input-area">
-      <button class="chat-attach-btn" title="附加圖片或文件" onclick="document.getElementById('chat-file-input').click()">📎</button>
+      <button class="chat-attach-btn" title="附加圖片或文件" onclick="document.getElementById('chat-file-input').click()"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></button>
       <input type="file" id="chat-file-input" accept="image/*,.pdf,.txt,.md,.csv,.xlsx,.docx" multiple style="display:none" onchange="window.__crmAttachFiles?.(this.files)">
       <textarea class="chat-input" id="chat-input" rows="1"
         placeholder="輸入訊息…（Enter 發送，Shift+Enter 換行，可貼上截圖）"
@@ -334,10 +334,10 @@
     </div>
     <div class="sale-type-row">
       <label class="sale-type-radio">
-        <input type="radio" name="sale-type" value="new" checked onchange="onSaleTypeChange()">💰 新業績
+        <input type="radio" name="sale-type" value="new" checked onchange="onSaleTypeChange()">新業績
       </label>
       <label class="sale-type-radio">
-        <input type="radio" name="sale-type" value="transfer" onchange="onSaleTypeChange()">🔄 舊單轉讓
+        <input type="radio" name="sale-type" value="transfer" onchange="onSaleTypeChange()">舊單轉讓
       </label>
     </div>
     <div id="sale-product-group">
@@ -407,7 +407,7 @@
 <div class="page" id="page-daily">
   <div class="daily-page">
     <div class="daily-header">
-      <div class="daily-header-title">📋 日報表</div>
+      <div class="daily-header-title">日報表</div>
       <div class="daily-date-nav">
         <button onclick="dailyPrev()">‹</button>
         <input type="date" id="daily-date-input" onchange="renderDailyPage()">
@@ -415,8 +415,8 @@
         <button class="btn" style="font-size:11px;padding:4px 10px" onclick="dailyToday()">今天</button>
       </div>
       <button class="btn btn-accent" style="margin-left:8px" onclick="saveDailyReport()">儲存</button>
-      <button class="btn" style="margin-left:6px" onclick="exportDailyCSV()">📤 匯出試算表</button>
-      <button class="btn" style="margin-left:6px;padding:.3rem .7rem;font-size:.8rem" onclick="toggleDailyMode()" id="daily-mode-toggle">⚡ 簡潔</button>
+      <button class="btn" style="margin-left:6px" onclick="exportDailyCSV()">匯出試算表</button>
+      <button class="btn" style="margin-left:6px;padding:.3rem .7rem;font-size:.8rem" onclick="toggleDailyMode()" id="daily-mode-toggle">簡潔</button>
     </div>
     <div class="daily-body" id="daily-body"></div>
   </div>
@@ -426,7 +426,7 @@
 <div class="page" id="page-docs">
   <div class="docs-page">
     <div class="docs-header">
-      <div class="docs-title">📁 常用文件</div>
+      <div class="docs-title">常用文件</div>
       <button class="btn btn-accent" onclick="openDocModal()">＋ 新增文件</button>
     </div>
     <!-- 全頁拖放區（覆蓋整個文件頁） -->
@@ -435,7 +435,7 @@
          ondragleave="docsOnDragLeave(event)"
          ondrop="docsOnDrop(event)">
       <div class="docs-dropzone-hint" id="docs-dropzone-hint">
-        <span class="docs-dropzone-icon">📂</span>
+        <span class="docs-dropzone-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v11a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h7a2 2 0 012 2z"/></svg></span>
         <span>拖曳檔案到此處即可快速新增</span>
         <span style="font-size:11px;opacity:.6">支援圖片、PDF、任意檔案，可一次拖入多個</span>
       </div>
@@ -451,10 +451,10 @@
     <div class="field-group">
       <div class="field-label">類型</div>
       <select class="field-input" id="doc-type" onchange="onDocTypeChange()">
-        <option value="poster">🖼 海報圖片</option>
-        <option value="form">📋 問卷連結</option>
-        <option value="link">🔗 其他連結</option>
-        <option value="file">📄 文件檔案</option>
+        <option value="poster">海報圖片</option>
+        <option value="form">問卷連結</option>
+        <option value="link">其他連結</option>
+        <option value="file">文件檔案</option>
       </select>
     </div>
     <div class="field-group">
@@ -473,7 +473,7 @@
            ondragover="modalFileOver(event)"
            ondragleave="modalFileLeave(event)"
            ondrop="modalFileDrop(event)">
-        <span class="doc-file-dropzone-icon" id="doc-file-icon">⬆</span>
+        <span class="doc-file-dropzone-icon" id="doc-file-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
         <span id="doc-file-label">點擊選擇 或 拖曳檔案至此</span>
         <span id="doc-file-hint" style="font-size:11px;opacity:.55">圖片 / PDF / 任意格式</span>
       </div>
@@ -490,21 +490,21 @@
 <!-- Settings Page -->
 <div class="page" id="page-settings">
   <div class="settings-page">
-    <h2 class="settings-title">⚙️ 設定</h2>
+    <h2 class="settings-title">設定</h2>
 
     <!-- PWA Install -->
     <div class="settings-card" id="pwa-card">
-      <div class="settings-card-title">📲 安裝 App</div>
+      <div class="settings-card-title">安裝 App</div>
       <div id="pwa-install-area"></div>
     </div>
 
     <!-- Google Calendar -->
     <div class="settings-card">
-      <div class="settings-card-title">📅 Google 日曆連結</div>
+      <div class="settings-card-title">Google 日曆連結</div>
       <div class="settings-card-desc">點擊授權，用 Google 帳號登入即可同步日曆事件。</div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn-accent" onclick="startGoogleOAuth()">🔗 用 Google 帳號授權</button>
-        <button class="btn" onclick="fetchGcalEvents()">🔄 同步事件</button>
+        <button class="btn btn-accent" onclick="startGoogleOAuth()">用 Google 帳號授權</button>
+        <button class="btn" onclick="fetchGcalEvents()">同步事件</button>
         <button class="btn" onclick="resetGoogleClientId()" style="font-size:11px">清除</button>
         <span id="gcal-status" style="font-size:12px;color:var(--text-muted)">未連結</span>
       </div>
@@ -512,11 +512,11 @@
 
     <!-- Google Sheets -->
     <div class="settings-card">
-      <div class="settings-card-title">📊 Google 試算表（日報同步）</div>
+      <div class="settings-card-title">Google 試算表（日報同步）</div>
       <div class="settings-card-desc">授權後可將日報表一鍵同步到指定的 Google 試算表，供主管檢視。</div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <button class="btn btn-accent" onclick="startSheetsOAuth()">🔗 授權 Google Sheets</button>
+          <button class="btn btn-accent" onclick="startSheetsOAuth()">授權 Google Sheets</button>
           <button class="btn" onclick="resetSheetsAuth()" style="font-size:11px">清除</button>
           <span id="gsheets-status" style="font-size:12px;color:var(--text-muted)">未連結</span>
         </div>
@@ -534,7 +534,7 @@
 
     <!-- AI Model -->
     <div class="settings-card">
-      <div class="settings-card-title">🤖 AI 模型設定</div>
+      <div class="settings-card-title">AI 模型設定</div>
       <div class="settings-card-desc">選擇 AI 供應商與模型，並填入對應的 API Key。</div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -565,7 +565,7 @@
 
     <!-- Theme -->
     <div class="settings-card">
-      <div class="settings-card-title">🎨 背景主題</div>
+      <div class="settings-card-title">背景主題</div>
       <div class="theme-grid" id="settings-theme-grid"></div>
     </div>
 
@@ -579,7 +579,7 @@
 
     <!-- Commands -->
     <div class="settings-card">
-      <div class="settings-card-title">🧩 指令清單（白名單 / 黑名單）</div>
+      <div class="settings-card-title">指令清單（白名單 / 黑名單）</div>
       <div class="settings-card-desc">可限制系統可以執行的指令。選擇模式後勾選要允許的指令。</div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
         <label style="font-size:12px;color:var(--text-muted)">模式</label>
@@ -595,7 +595,7 @@
 
     <!-- Obsidian -->
     <div class="settings-card">
-      <div class="settings-card-title">🗂 Obsidian 連結</div>
+      <div class="settings-card-title">Obsidian 連結</div>
       <div class="settings-card-desc">AI 對話時可自動搜尋 Obsidian 筆記，結束後也可將摘要存回。需安裝 <a href="https://github.com/coddingtonbear/obsidian-local-rest-api" target="_blank" rel="noopener" style="color:var(--accent)">Local REST API</a> 插件。</div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -605,8 +605,8 @@
           <input class="field-input" id="obsidian-token" type="password" placeholder="插件設定中的 API Key" style="flex:1;min-width:150px;font-size:12px;font-family:monospace">
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <button class="btn btn-accent" onclick="saveObsidianCfg()">💾 儲存</button>
-          <button class="btn" onclick="testObsidianConn()">🔄 測試連線</button>
+          <button class="btn btn-accent" onclick="saveObsidianCfg()">儲存</button>
+          <button class="btn" onclick="testObsidianConn()">測試連線</button>
           <span id="obsidian-conn-status" style="font-size:11px;color:var(--text-muted)">尚未設定</span>
         </div>
       </div>
@@ -617,7 +617,7 @@
       <div class="settings-card-title">⏱ Obsidian 定時備份</div>
       <div class="settings-card-desc">每 5 分鐘自動寫入今日備份到指定資料夾。每天一個檔案（CRM-YYYY-MM-DD.json），可逆向還原任意日期資料。</div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn-accent" id="ob-backup-btn" onclick="OB_BACKUP.requestDir()">📁 授權 Obsidian 資料夾</button>
+        <button class="btn btn-accent" id="ob-backup-btn" onclick="OB_BACKUP.requestDir()">授權 Obsidian 資料夾</button>
         <button class="btn" id="ob-backup-clear" style="display:none;color:var(--red)" onclick="OB_BACKUP.clear()">清除設定</button>
       </div>
       <div id="ob-backup-status" style="font-size:11px;color:var(--text-muted);margin-top:6px">未設定自動備份</div>
@@ -626,7 +626,7 @@
 
     <!-- Cloud Sync / MCP -->
     <div class="settings-card">
-      <div class="settings-card-title">☁️ 雲端同步 &amp; MCP 接入</div>
+      <div class="settings-card-title">雲端同步 &amp; MCP 接入</div>
       <div class="settings-card-desc">設定 API Token 後，CRM 資料會自動同步到雲端，Hermes 等 AI Agent 可透過 MCP 讀寫資料。</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <input class="field-input" id="cloud-token-input" type="password" placeholder="API Token（留空=停用同步）" style="flex:1;min-width:200px">
@@ -641,24 +641,24 @@
 
     <!-- Backup -->
     <div class="settings-card">
-      <div class="settings-card-title">💾 備份與還原</div>
+      <div class="settings-card-title">備份與還原</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn btn-accent" onclick="exportAll()">⬇ 匯出備份 (JSON)</button>
-        <label class="btn" style="cursor:pointer">⬆ 匯入備份
+        <button class="btn btn-accent" onclick="exportAll()">匯出備份 (JSON)</button>
+        <label class="btn" style="cursor:pointer">匯入備份
           <input type="file" accept=".json" onchange="importAll(event)" style="display:none">
         </label>
-        <button class="btn" style="color:var(--red)" onclick="clearAllData()">🗑 清除所有資料</button>
+        <button class="btn" style="color:var(--red)" onclick="clearAllData()">清除所有資料</button>
       </div>
       <div style="font-size:11px;color:var(--text-subtle);margin-top:8px">完整備份：人脈節點、業績記錄、日報表、月份目標、活動、任務。匯入前系統會再次確認。</div>
     </div>
 
     <!-- AI Chat Backup -->
     <div class="settings-card">
-      <div class="settings-card-title">🤖 AI 對話備份</div>
+      <div class="settings-card-title">AI 對話備份</div>
       <div class="settings-card-desc">備份所有聯絡人的 AI 對話紀錄（含各場景）＋記憶庫摘要。可跨裝置還原或在資料消失時找回。</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
-        <button id="ai-backup-export-btn" class="btn btn-accent" onclick="exportAiData()">⬇ 匯出 AI 對話備份</button>
-        <label id="ai-backup-import-btn" class="btn" style="cursor:pointer">⬆ 匯入 AI 對話備份
+        <button id="ai-backup-export-btn" class="btn btn-accent" onclick="exportAiData()">匯出 AI 對話備份</button>
+        <label id="ai-backup-import-btn" class="btn" style="cursor:pointer">匯入 AI 對話備份
           <input type="file" accept=".json" onchange="importAiData(event)" style="display:none">
         </label>
       </div>
@@ -667,10 +667,10 @@
 
     <!-- Auto Snapshots -->
     <div class="settings-card">
-      <div class="settings-card-title">🔄 自動快照還原</div>
+      <div class="settings-card-title">自動快照還原</div>
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">系統每 10 次操作、每 5 分鐘、頁面關閉前自動快照，保留最近 5 份。</div>
-      <button class="btn" onclick="refreshSnapshots()" style="margin-bottom:10px">🔍 查看快照清單</button>
-      <button class="btn btn-accent" onclick="(function(){window.__crmAutoSnapshot&&window.__crmAutoSnapshot();refreshSnapshots();})()" style="margin-bottom:10px;margin-left:6px">📸 立即快照</button>
+      <button class="btn" onclick="refreshSnapshots()" style="margin-bottom:10px">查看快照清單</button>
+      <button class="btn btn-accent" onclick="(function(){window.__crmAutoSnapshot&&window.__crmAutoSnapshot();refreshSnapshots();})()" style="margin-bottom:10px;margin-left:6px">立即快照</button>
       <div id="snapshot-list" style="display:none">
         <table style="width:100%;border-collapse:collapse;font-size:12px">
           <thead>
@@ -692,11 +692,11 @@
 <div class="page" id="page-students">
   <div class="students-page">
     <div class="students-topbar">
-      <input class="field-input" id="students-search" placeholder="🔍 搜尋姓名、電話…"
+      <input class="field-input" id="students-search" placeholder="搜尋姓名、電話…"
         oninput="studentSearch(this.value)" style="flex:1;max-width:260px;min-width:140px">
       <span style="flex:1"></span>
       <button class="stu-reminder-bell" onclick="showTodayReminders()" title="今日待跟進">
-        🔔<span id="students-reminder-count" class="reminder-badge"></span>
+        <span id="students-reminder-count" class="reminder-badge"></span>
       </button>
       <button class="btn btn-accent" onclick="window.__crmOpenStudentModal?.()">＋ 新增學員</button>
     </div>
@@ -842,7 +842,7 @@
   function testCloudConn() {
     var el = document.getElementById('cloud-sync-status');
     if (el) el.textContent = '⏳ 測試中…';
-    if (!window.__crmTestCloudConn) { if (el) el.textContent = '⚠️ 模組尚未載入'; return; }
+    if (!window.__crmTestCloudConn) { if (el) el.textContent = '⚠模組尚未載入'; return; }
     window.__crmTestCloudConn().then(function(r) {
       if (el) el.textContent = r.ok ? '✅ 連線成功' : '❌ ' + r.error;
     });

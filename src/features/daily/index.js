@@ -148,7 +148,7 @@ export function loadYestTomorrow() {
   if (slot) slot.planned = '[昨]' + yr.tomorrow.split('\n')[0].slice(0, 18);
   _patch(ds, { schedule: [...schedule] });
   renderDailyPage();
-  toast('✅ 已帶入昨日計畫');
+  toast('已帶入昨日計畫');
 }
 
 // ── CSV export (for supervisor spreadsheet) ───────────────────────────────────
@@ -251,7 +251,7 @@ export function exportDailyCSV() {
   a.download = `日報表_${ds}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  toast(`✅ 已匯出 ${ds} 日報表`);
+  toast(`已匯出 ${ds} 日報表`);
 }
 
 // ── Save button ───────────────────────────────────────────────────────────────
@@ -267,7 +267,7 @@ export function saveDailyReport() {
   });
   _patch(ds, patch);
   renderMonthlyProgress();
-  toast('✅ 已儲存');
+  toast('已儲存');
 }
 
 // ── Quick mode toggle ────────────────────────────────────────────────────────
@@ -291,7 +291,7 @@ function applyModeClass() {
   body.classList.toggle('daily-quick-mode', quick);
   const btn = document.getElementById('daily-mode-toggle');
   if (btn) {
-    btn.textContent = quick ? '📋 完整' : '⚡ 簡潔';
+    btn.textContent = quick ? '完整' : '簡潔';
     btn.classList.toggle('active', quick);
   }
 }
@@ -355,7 +355,7 @@ export function renderMonthlyProgress() {
   const mLabel = `${mkey.slice(0,4)}年${parseInt(mkey.slice(5))}月`;
   cont.innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-      <span style="font-size:12px;font-weight:700;white-space:nowrap;color:var(--text-muted)">💰 業績目標</span>
+      <span style="font-size:12px;font-weight:700;white-space:nowrap;color:var(--text-muted)">業績目標</span>
       <input data-mst="mg-sales" data-nodraft="true" type="number" min="0"
         value="${getMonthlySalesTargets()[mkey] || 0}"
         style="width:90px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:3px 8px;font-size:13px;font-weight:700;font-family:inherit"
@@ -425,10 +425,10 @@ function renderDailySummary(ds) {
   const nextEvent = todayEvents[0];
 
   const parts = [];
-  parts.push(`<span class="summary-section"><span class="summary-icon">📊</span> ${kpiParts.join(' · ')}</span>`);
-  parts.push(`<span class="summary-section"><span class="summary-icon">💰</span> NT$${salesTotal.toLocaleString()} / NT$${salesTarget.toLocaleString()} (${salesPct}%)</span>`);
-  if (overdue.length) parts.push(`<span class="summary-section"><span class="summary-icon">🔔</span> ${overdue.length} 位超過7天未聯繫</span>`);
-  if (nextEvent) parts.push(`<span class="summary-section"><span class="summary-icon">📅</span> ${nextEvent.time||''} ${nextEvent.title||nextEvent.name||''}</span>`);
+  parts.push(`<span class="summary-section"><span class="summary-icon"></span> ${kpiParts.join(' · ')}</span>`);
+  parts.push(`<span class="summary-section"><span class="summary-icon"></span> NT$${salesTotal.toLocaleString()} / NT$${salesTarget.toLocaleString()} (${salesPct}%)</span>`);
+  if (overdue.length) parts.push(`<span class="summary-section"><span class="summary-icon"></span> ${overdue.length} 位超過7天未聯繫</span>`);
+  if (nextEvent) parts.push(`<span class="summary-section"><span class="summary-icon"></span> ${nextEvent.time||''} ${nextEvent.title||nextEvent.name||''}</span>`);
 
   el.innerHTML = `<div class="summary-bar">${parts.join('')}</div>`;
 }
@@ -477,20 +477,20 @@ export function renderDailyPage() {
   <div class="daily-col">
     <div class="daily-section">
       <div class="daily-section-header">
-        <span>📊 ${mLabel}月統計</span>
+        <span>${mLabel}月統計</span>
         <span style="font-size:10px;color:var(--text-muted)">目標可直接修改</span>
       </div>
       <div class="daily-section-body" id="monthly-goal-body" style="padding:10px 12px"></div>
     </div>
 
     <div class="daily-section">
-      <div class="daily-section-header"><span>⏰ 時間安排</span></div>
+      <div class="daily-section-header"><span>時間安排</span></div>
       <div class="daily-section-body" style="padding:6px 10px">
         <div class="daily-sched-grid">
           <div class="dsgh"></div>
-          <div class="dsgh">📋 預定</div>
+          <div class="dsgh">預定</div>
           <div class="dsgh">✅ 成就</div>
-          <div class="dsgh">🔍 復盤</div>
+          <div class="dsgh">復盤</div>
           ${rpt.schedule.map((s, i) => {
             const isNow = i === nowSlot;
             return `
@@ -505,7 +505,7 @@ export function renderDailyPage() {
 
     <div class="daily-section">
       <div class="daily-section-header">
-        <span>📞 今日實績</span>
+        <span>今日實績</span>
         <span style="font-size:10px;color:var(--text-muted)">輸入後自動儲存</span>
       </div>
       <div class="daily-section-body" style="padding:10px 12px">
@@ -525,7 +525,7 @@ export function renderDailyPage() {
   <!-- RIGHT -->
   <div class="daily-col">
     <div class="daily-section">
-      <div class="daily-section-header"><span>🎯 三件大事</span></div>
+      <div class="daily-section-header"><span>三件大事</span></div>
       <div class="daily-section-body">
         <div class="daily-bt-hdr">
           <div></div><div>項目名稱</div><div>目標</div><div>如何驗證</div>
@@ -542,7 +542,7 @@ export function renderDailyPage() {
 
     <div class="daily-section">
       <div class="daily-section-header">
-        <span>🤝 今日與誰連結</span>
+        <span>今日與誰連結</span>
         <button class="btn" style="font-size:11px;padding:3px 10px" onclick="addDailyConn()">+ 新增</button>
       </div>
       <div class="daily-section-body">
@@ -565,11 +565,11 @@ export function renderDailyPage() {
     </div>
 
     <div class="daily-section">
-      <div class="daily-section-header"><span>🌙 今日復盤</span></div>
+      <div class="daily-section-header"><span>今日復盤</span></div>
       <div class="daily-section-body">
         <div class="daily-reflect-2col">
           <div>
-            <div style="font-size:10.5px;font-weight:700;color:var(--text-muted);margin-bottom:6px">🙏 值得感謝的五件事</div>
+            <div style="font-size:10.5px;font-weight:700;color:var(--text-muted);margin-bottom:6px">值得感謝的五件事</div>
             ${rpt.gratitude.map((v, i) => `
               <div class="daily-rf-item">
                 <span class="daily-rf-num">${i + 1}</span>
@@ -577,7 +577,7 @@ export function renderDailyPage() {
               </div>`).join('')}
           </div>
           <div>
-            <div style="font-size:10.5px;font-weight:700;color:var(--text-muted);margin-bottom:6px">💡 值得優化的五件事</div>
+            <div style="font-size:10.5px;font-weight:700;color:var(--text-muted);margin-bottom:6px">值得優化的五件事</div>
             ${rpt.optimize.map((v, i) => `
               <div class="daily-rf-item">
                 <span class="daily-rf-num">${i + 1}</span>
@@ -590,7 +590,7 @@ export function renderDailyPage() {
 
     <div class="daily-section">
       <div class="daily-section-header">
-        <span>📋 明天要做的事</span>
+        <span>明天要做的事</span>
         <button class="btn" style="font-size:11px;padding:3px 10px" onclick="loadYestTomorrow()">← 帶入昨日</button>
       </div>
       <div class="daily-section-body">

@@ -311,7 +311,6 @@
   display:flex;align-items:center;gap:7px;
   overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:500;
 }
-.sidebar-user:before{content:'👤';font-size:13px}
 .sidebar-logout{
   background:none;border:none;color:var(--text-subtle);cursor:pointer;
   font-size:15px;padding:5px;border-radius:6px;transition:all .12s;
@@ -2021,4 +2020,56 @@ body.admin-page{background:var(--bg);color:var(--text);font-family:'Inter',-appl
     animation-duration: .01ms !important;
     transition-duration: .01ms !important;
   }
+}
+
+/* ═══════════════════════════════════════
+   MOBILE (≤768px) — 底部導航列 + 緊湊排版
+═══════════════════════════════════════ */
+@media(max-width:768px){
+  .app-layout{flex-direction:column}
+
+  /* 側欄 → 底部 tab bar */
+  .sidebar{
+    position:fixed;bottom:0;left:0;right:0;top:auto;
+    width:100%;min-width:100%;height:auto;
+    flex-direction:row;border-right:none;border-top:1px solid var(--border);
+    background:color-mix(in srgb, var(--surface) 94%, transparent);
+    backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%);
+  }
+  .sidebar-logo,.sidebar-footer{display:none}
+  .sidebar-nav{
+    display:flex;flex-direction:row;flex:1;gap:0;
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+    overflow:visible;
+  }
+  .sidebar-item{
+    flex:1;flex-direction:column;gap:3px;justify-content:center;align-items:center;
+    margin:0;padding:5px 2px;width:auto;
+    font-size:10px;font-weight:600;border-radius:10px;
+    animation:none;
+  }
+  .sidebar-item svg{width:20px;height:20px}
+  .sidebar-item:hover{transform:none;background:none}
+  .sidebar-item.active::before{display:none}
+  .sidebar-item.active{background:none}
+
+  /* 主內容：預留底部導航高度 */
+  .main-content{padding-bottom:calc(56px + env(safe-area-inset-bottom))}
+
+  /* 頂欄：統計改橫向捲動，不換行 */
+  .main-content .header{padding:8px 12px;gap:8px;flex-wrap:wrap}
+  .main-content .header-stats{
+    margin-left:0;overflow-x:auto;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;flex:1;min-width:0;
+  }
+  .main-content .header-stats::-webkit-scrollbar{display:none}
+  .stat{white-space:nowrap;flex-shrink:0}
+
+  /* 日報頁頭：標題獨立一列，控制項換行 */
+  .daily-header{flex-wrap:wrap;padding:10px 14px;gap:8px;row-gap:8px}
+  .daily-header-title{width:100%;font-size:15px}
+  .daily-date-nav{margin-left:0}
+  .daily-body{padding:12px 12px 28px;gap:12px}
+  .daily-section-header{padding:10px 14px}
+  .daily-section-body{padding:12px 14px}
 }

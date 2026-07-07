@@ -88,12 +88,12 @@ export function markContactedToday() {
   const ts = document.querySelector('.node-timestamps');
   if (ts) {
     const spans = ts.querySelectorAll('span');
-    if (spans[2]) spans[2].textContent = '📞 聯繫 ' + today;
-    if (spans[1]) spans[1].textContent = '✏️ 編輯 ' + today;
+    if (spans[2]) spans[2].textContent = '聯繫 ' + today;
+    if (spans[1]) spans[1].textContent = '編輯 ' + today;
   }
   const wrap = document.querySelector(`.node-wrap[data-id="${n.id}"]`);
   if (wrap) { const lbl = wrap.querySelector('.node-last-contact'); if (lbl) lbl.textContent = today; }
-  toast('✅ 已記錄今日聯繫（' + today + '）');
+  toast('已記錄今日聯繫（' + today + '）');
 }
 
 // ── Save panel ────────────────────────────────────────────────────────────────
@@ -237,9 +237,9 @@ export function renderPanel(n) {
 
   body.innerHTML = `
     <div class="quick-contact-bar">
-      <button class="quick-contact-btn" onclick="window.__crmMarkContactedToday?.()">📞 今天聯繫到</button>
-      <button class="quick-toggle-btn${inf.hasQuestionnaire === '是' ? ' on' : ''}" data-toggle="hasQuestionnaire" onclick="window.__crmToggleQuick?.('hasQuestionnaire')">📋 做過問卷</button>
-      <button class="quick-toggle-btn${inf.hasCommunicationBook === '是' ? ' on' : ''}" data-toggle="hasCommunicationBook" onclick="window.__crmToggleQuick?.('hasCommunicationBook')">📖 聊過溝通本</button>
+      <button class="quick-contact-btn" onclick="window.__crmMarkContactedToday?.()">今天聯繫到</button>
+      <button class="quick-toggle-btn${inf.hasQuestionnaire === '是' ? ' on' : ''}" data-toggle="hasQuestionnaire" onclick="window.__crmToggleQuick?.('hasQuestionnaire')">做過問卷</button>
+      <button class="quick-toggle-btn${inf.hasCommunicationBook === '是' ? ' on' : ''}" data-toggle="hasCommunicationBook" onclick="window.__crmToggleQuick?.('hasCommunicationBook')">聊過溝通本</button>
       <span class="quick-contact-hint" id="quick-contact-hint">${inf.lastContact ? '上次：' + inf.lastContact : ''}</span>
     </div>
     <div class="field-group">
@@ -283,9 +283,9 @@ export function renderPanel(n) {
         <div class="field-group"><div class="field-label">標籤（逗號分隔）</div><input class="field-input" data-info="tags-input" value="${escHtml(tagsVal)}" oninput="window.__crmSavePanel?.()" placeholder="VIP, 客戶, 介紹人"></div>
         <div class="field-group"><div class="field-label">備注</div><textarea class="field-input field-textarea" data-info="notes" oninput="window.__crmSavePanel?.()" placeholder="備注說明">${escHtml(inf.notes)}</textarea></div>
         <div class="node-timestamps">
-          <span title="建立時間">🕐 建立 ${fmt(n.createdAt)}</span>
-          <span title="最後編輯">✏️ 編輯 ${n.updatedAt && n.updatedAt !== n.createdAt ? fmt(n.updatedAt) : '—'}</span>
-          <span title="最後聯繫">📞 聯繫 ${inf.lastContact || '—'}</span>
+          <span title="建立時間">建立 ${fmt(n.createdAt)}</span>
+          <span title="最後編輯">編輯 ${n.updatedAt && n.updatedAt !== n.createdAt ? fmt(n.updatedAt) : '—'}</span>
+          <span title="最後聯繫">聯繫 ${inf.lastContact || '—'}</span>
         </div>
       </div>
     </div>
@@ -361,7 +361,7 @@ export function renderPanel(n) {
       </div>
     </div>
     <div class="accordion">
-      <div class="acc-header" onclick="window.__crmToggleAcc?.(this)">📋 C單輸出 <span class="acc-chevron">▲</span></div>
+      <div class="acc-header" onclick="window.__crmToggleAcc?.(this)">C單輸出 <span class="acc-chevron">▲</span></div>
       <div class="acc-body">
         <div class="export-box" id="export-preview">${buildCSheet(n)}</div>
         <button class="btn btn-sm" style="width:100%" onclick="window.__crmCopyCSheet?.()">複製 C單</button>

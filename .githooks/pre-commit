@@ -1,31 +1,33 @@
 #!/bin/bash
-# 自動 bump SW cache 版本：當任何 JS/CSS/HTML 進入 commit 時，
-# 強制 PWA 在下次開啟時 activate 新 SW、reload 取得最新內容。
-# 不需要 AI 或人類記得手動 bump。
+# 守門員：擋住任何把 Service Worker 加回來的 commit。
+# 背景：SW 快取更新問題從 v206 bump 到 v301 共 95 次都治不好，
+# 2026-07-07 定案移除 SW、改純 manifest PWA，新鮮度由 _headers no-cache 保證。
+# sw.js 現在是 kill switch（解除舊裝置註冊），永久保留、不准改回快取邏輯。
 
 set -e
 
-STAGED=$(git diff --cached --name-only --diff-filter=ACM \
-  | grep -E '\.(js|css|html)$' \
-  | grep -vE '^(sw\.js|.*\.min\..*|.*\.(backup|bak)$|node_modules/.*)' \
-  || true)
+fail() {
+  echo "❌ pre-commit 擋下：$1"
+  echo "   此專案已定案移除 Service Worker（見 README「PWA 快取策略」）。"
+  echo "   不准重新註冊 SW、不准在 sw.js 加快取邏輯、不准 bump 版本參數。"
+  exit 1
+}
 
-if [ -z "$STAGED" ]; then
-  exit 0
+# 1. HTML 不准出現 serviceWorker.register
+if git diff --cached -U0 -- '*.html' | grep -E '^\+.*serviceWorker\.register' >/dev/null; then
+  fail "偵測到 serviceWorker.register 被加回 HTML"
 fi
 
-SW_FILE="sw.js"
-if [ ! -f "$SW_FILE" ]; then
-  exit 0
+# 2. sw.js 不准出現 fetch handler 或 caches.open（kill switch 只清不存）
+if git diff --cached --name-only | grep -qx 'sw.js'; then
+  if git show :sw.js | grep -E "addEventListener\('fetch'|caches\.open" >/dev/null; then
+    fail "sw.js 被加回快取邏輯（fetch handler / caches.open）"
+  fi
 fi
 
-CURRENT=$(grep "const CACHE = 'fdd-crm-v" "$SW_FILE" | grep -o '[0-9]*' | tail -1)
-if [ -z "$CURRENT" ]; then
-  echo "⚠️  pre-commit: 找不到 SW 版本號，跳過 bump"
-  exit 0
+# 3. 不准刪 _headers（唯一的新鮮度機制）
+if git diff --cached --name-only --diff-filter=D | grep -qx '_headers'; then
+  fail "_headers 被刪除（它是唯一保證使用者拿到最新版的機制）"
 fi
 
-NEXT=$((CURRENT + 1))
-sed -i '' "s/fdd-crm-v${CURRENT}/fdd-crm-v${NEXT}/" "$SW_FILE"
-git add "$SW_FILE"
-echo "✓ SW cache auto-bumped: v${CURRENT} → v${NEXT} (因為改了 $(echo "$STAGED" | wc -l | tr -d ' ') 個 client 檔)"
+exit 0

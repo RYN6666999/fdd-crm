@@ -142,10 +142,9 @@ if (document.readyState === 'loading') {
 ## 四、部署鏈驗證（改動前必做）
 
 ```bash
-# 確認「我在改的目錄」和「線上實際來源」是同一份
-curl -s https://your-app.pages.dev/sw.js | grep "const CACHE"
-# 對比本地
-grep "const CACHE" ./sw.js
+# 確認「我在改的目錄」和「線上實際來源」是同一份（比對檔案 hash）
+curl -s https://your-app.pages.dev/index.html | md5 -q
+md5 -q ./index.html
 ```
 
 若版本不一致 → 先找到真正的部署來源，再動手。
@@ -166,8 +165,9 @@ grep "const CACHE" ./sw.js
 2. 加錯誤 Overlay（若尚未有）
    在 index.html 加全域 error/unhandledrejection 監聽
 
-3. 訪問 /?bust=1 強制繞過 SW 快取
-   https://your-app.pages.dev/?bust=1
+3. 硬重新整理（Cmd+Shift+R）
+   本專案已無 Service Worker，_headers 對 HTML/JS/CSS 設 no-cache，
+   一般重新整理就會拿到最新版；硬重整只是為了排除瀏覽器 disk cache
 
 4. 讀錯誤訊息
    紅色框出現 → 直接看錯誤，不猜
@@ -182,45 +182,23 @@ grep "const CACHE" ./sw.js
 
 ---
 
-## 六、Service Worker 更新機制
+## 六、Service Worker：已移除（2026-07-07 定案）
 
-```js
-// sw.js activate — 觸發所有分頁強制重載
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
-      .then(() => self.clients.matchAll({ type: 'window' }))
-      .then(clients => clients.forEach(c => c.navigate(c.url)))
-  );
-  self.clients.claim();
-});
+過去這一節教的是 SW 更新機制。從 v206 bump 到 v301 共 95 次版本遞增都治不好
+「改了看不到、重新整理沒用」，最終定案：**移除 SW，改純 manifest PWA**。
 
-// fetch — ?bust= 參數完全跳過快取
-self.addEventListener('fetch', e => {
-  const url = new URL(e.request.url);
-  if (url.searchParams.has('bust')) {
-    e.respondWith(
-      fetch(e.request.url.replace(/[?&]bust=[^&]*/, ''), { cache: 'no-store' })
-    );
-    return;
-  }
-  // ... 其他策略
-});
-```
+現在的架構：
 
-```js
-// index.html — controllerchange 後強制 bust reload（iOS PWA 相容）
-navigator.serviceWorker.addEventListener('controllerchange', function() {
-  if (_reloading) return;
-  _reloading = true;
-  setTimeout(function() {
-    window.location.replace(location.pathname + '?bust=' + Date.now());
-  }, 800);
-});
-```
+- **新鮮度唯一機制**：`_headers` 對 HTML/JS/CSS 設 `Cache-Control: no-cache, must-revalidate`
+  → 瀏覽器每次載入向 CF revalidate（304 很快），部署即生效
+- **sw.js 是 kill switch**：解除舊裝置的 SW 註冊 + 清光快取 + 重載。永久保留、不准改回快取邏輯
+- **manifest.json 保留**：加主畫面/全螢幕/icon 照舊，PWA 體驗零損失（安裝不需要 SW）
+- **不需要任何版本號**：沒有 APP_VERSION、沒有 `?bust=`、部署不 bump 任何東西
+- **`.githooks/pre-commit` 是守門員**：擋 `serviceWorker.register`、擋 sw.js 加快取邏輯、擋刪 `_headers`
 
-**重點**：iOS PWA 上 `window.location.reload()` 有時不生效，必須用 `location.replace('/?bust=時間戳')` 搭配 SW 的 no-store 處理。
+**教訓**：SW 更新地獄有三個獨立根因（waiting 生命週期、sw.js 本身被 HTTP 快取、
+cache-first 的舊 shell），bump 版本號一個都碰不到。當你發現自己在「加強更新機制」，
+就是在治標 —— 正確動作是問「這層快取為什麼要存在」。這個專案的答案是：不需要存在。
 
 ---
 
@@ -245,18 +223,13 @@ cd "$(git rev-parse --show-toplevel)/tools/crm"
 
 node check-imports.mjs || { echo "❌ 驗證失敗，部署取消"; exit 1; }
 
-SW_FILE="sw.js"
-CURRENT=$(grep "const CACHE = 'fdd-crm-v" $SW_FILE | grep -o '[0-9]*' | tail -1)
-NEXT=$((CURRENT + 1))
-sed -i '' "s/fdd-crm-v${CURRENT}/fdd-crm-v${NEXT}/" $SW_FILE
-echo "✓ SW cache: v${CURRENT} → v${NEXT}"
-
 npx wrangler pages deploy . --project-name fdd-crm --branch main --commit-dirty=true
 EOF
 chmod +x .git/hooks/post-push
 ```
 
-效果：`git push` = 驗證 + SW bump + wrangler 部署，一步到位。
+效果：`git push` = 驗證 + wrangler 部署，一步到位。
+（無 SW 架構下不需要 bump 任何版本，部署即生效。）
 
 **注意**：hook 只存本機，不進 git。
 

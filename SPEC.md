@@ -132,7 +132,7 @@ tools/crm/
 │
 ├── index.html               ← 改為 <script type="module" src="src/main.js">
 ├── crm.css                  ← 暫維持單檔（Phase 2 再拆）
-├── sw.js                    ← Service Worker（維持）
+├── sw.js                    ← Kill switch（SW 已移除，此檔負責解除舊裝置註冊，永久保留）
 ├── manifest.json
 └── wrangler.toml
 ```

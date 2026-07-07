@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="crm.css?v=10">
+<link rel="stylesheet" href="crm.css">
 <style>
 .chat-ctx-warn{margin:8px 12px;padding:8px 12px;background:rgba(210,120,0,.15);border:1px solid rgba(210,120,0,.4);border-radius:8px;font-size:12px;color:#f0a040;text-align:center}
 .chat-attach-btn{background:none;border:none;font-size:18px;cursor:pointer;padding:0 6px;opacity:.6;flex-shrink:0;line-height:1}
@@ -415,6 +415,7 @@
         <button class="btn" style="font-size:11px;padding:4px 10px" onclick="dailyToday()">今天</button>
       </div>
       <button class="btn btn-accent" style="margin-left:8px" onclick="saveDailyReport()">儲存</button>
+      <button class="btn" style="margin-left:6px" onclick="exportDailyCSV()">📤 匯出試算表</button>
       <button class="btn" style="margin-left:6px;padding:.3rem .7rem;font-size:.8rem" onclick="toggleDailyMode()" id="daily-mode-toggle">⚡ 簡潔</button>
     </div>
     <div class="daily-body" id="daily-body"></div>
@@ -776,40 +777,23 @@
 </script>
 
 <script>
-  (function(){
-    try{
-      var isLocal = location.hostname==='localhost'||location.hostname==='127.0.0.1';
-      if('serviceWorker' in navigator && !isLocal && location.protocol==='https:'){
-        navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
-          .then(function(r){
-            console.log('[SW] 已註冊', r.scope);
-            // 每次開啟立即主動檢查有無新版本
-            r.update().catch(function(){});
-            // 每次使用者切回前景（從其他 app 切回 PWA）也觸發更新檢查
-            document.addEventListener('visibilitychange', function(){
-              if(document.visibilityState === 'visible') r.update().catch(function(){});
-            });
-          })
-          .catch(function(e){console.warn('[SW] 註冊失敗', e)});
-
-      // 監聽 SW 發送的更新訊息（新版 activate 後通知）
-      navigator.serviceWorker.addEventListener('message', function(ev){
-        if(ev.data && ev.data.type === 'SW_UPDATED'){
-          console.log('[SW] 新版本已安裝:', ev.data.cache);
-          window.location.reload();
-        }
-      });
-
-      // SW 接管後強制 reload（controllerchange 事件）
-      navigator.serviceWorker.addEventListener('controllerchange', function(){
-        if(sessionStorage.getItem("crm-sw-reloaded")) return;
-        sessionStorage.setItem("crm-sw-reloaded", "1");
-        console.log('[SW] 新版本已接管，reload');
-        window.location.reload();
-      });
-      }
-    }catch(e){}
-  })();
+/* PWA 已改為純 manifest（無 Service Worker）。
+   新鮮度由 _headers 的 no-cache 保證，不再需要版本號。
+   以下只做善後：解除舊 SW 註冊 + 清光舊快取。sw.js 本身是 kill switch，雙保險。 */
+(function(){
+  try{
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistrations()
+        .then(function(rs){ rs.forEach(function(r){ r.unregister(); }); })
+        .catch(function(){});
+    }
+    if(window.caches){
+      caches.keys()
+        .then(function(keys){ keys.forEach(function(k){ caches.delete(k); }); })
+        .catch(function(){});
+    }
+  }catch(e){}
+})();
 
   // Snapshot helpers
   function refreshSnapshots() {
@@ -888,6 +872,6 @@
 </script>
 </div><!-- /.main-content -->
 </div><!-- /.app-layout -->
-<script type="module" src="src/main.js?bust=204"></script>
+<script type="module" src="src/main.js"></script>
 </body>
 </html>

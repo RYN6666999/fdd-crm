@@ -151,6 +151,48 @@ export function loadYestTomorrow() {
   toast('✅ 已帶入昨日計畫');
 }
 
+// ── CSV export (for supervisor spreadsheet) ───────────────────────────────────
+
+export function exportDailyCSV() {
+  const all = getDailyReports();
+  const dates = Object.keys(all).sort();
+  if (!dates.length) { toast('尚無日報資料'); return; }
+
+  // BOM for Chinese chars in Excel
+  let csv = '\uFEFF';
+  csv += '日期,邀約,電話,問卷,跟進,成交,大事一,大事二,大事三,連結人數,感謝,優化,明天要做\n';
+
+  const monthKey = _getMonthKey();
+  const monthDates = dates.filter(d => d.startsWith(monthKey));
+
+  for (const ds of monthDates) {
+    const r = all[ds];
+    const row = [
+      ds,
+      r['act-invite'] || 0, r['act-calls'] || 0, r['act-forms'] || 0,
+      r['act-followup'] || 0, r['act-close'] || 0,
+      ...(r.bigThree || Array(3).fill(null)).map(b => {
+        const s = b?.task || '';
+        return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
+      }),
+      (r.connections || []).length,
+      `"${(r.gratitude || []).filter(Boolean).join('; ')}"`,
+      `"${(r.optimize || []).filter(Boolean).join('; ')}"`,
+      `"${(r.tomorrow || '').replace(/"/g, '""')}"`,
+    ];
+    csv += row.join(',') + '\n';
+  }
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `日報表_${monthKey}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast(`✅ 已匯出 ${monthDates.length} 天的日報表`);
+}
+
 // ── Save button ───────────────────────────────────────────────────────────────
 
 export function saveDailyReport() {

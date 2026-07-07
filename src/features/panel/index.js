@@ -56,6 +56,18 @@ export function closePanel() {
   _panelNodeId = null;
 }
 
+// ── Quick toggle (問卷/溝通本) ────────────────────────────────────────────────
+
+export function toggleQuick(field) {
+  if (!_panelNodeId) return;
+  const n = findNode(_panelNodeId);
+  if (!n) return;
+  const newVal = n.info[field] === '是' ? '' : '是';
+  dispatch({ type: 'NODE_UPDATE', payload: { id: n.id, patch: { info: { ...n.info, [field]: newVal } }}});
+  const btn = document.querySelector(`[data-toggle="${field}"]`);
+  if (btn) btn.classList.toggle('on', newVal === '是');
+}
+
 // ── Mark contacted ────────────────────────────────────────────────────────────
 
 export function markContactedToday() {
@@ -183,6 +195,7 @@ export function buildCSheet(n) {
     `── 邀約 ──`,
     `邀約方式：${i.invitationMethod || ''}`,
     `告知場地費：${i.knowsVenueFee || ''}　告知學費79800：${i.knowsTuition || ''}`,
+    `問卷：${i.hasQuestionnaire || '—'}　溝通本：${i.hasCommunicationBook || '—'}`,
     `需求：${(i.needs || []).join('、') || ''}`,
     `關鍵問題：${i.keyQuestions || ''}`,
     `可自行決定：${i.canDecide || ''}　當場付款：${i.payOnSite || ''}`, ``,
@@ -225,6 +238,8 @@ export function renderPanel(n) {
   body.innerHTML = `
     <div class="quick-contact-bar">
       <button class="quick-contact-btn" onclick="window.__crmMarkContactedToday?.()">📞 今天聯繫到</button>
+      <button class="quick-toggle-btn${inf.hasQuestionnaire === '是' ? ' on' : ''}" data-toggle="hasQuestionnaire" onclick="window.__crmToggleQuick?.('hasQuestionnaire')">📋 做過問卷</button>
+      <button class="quick-toggle-btn${inf.hasCommunicationBook === '是' ? ' on' : ''}" data-toggle="hasCommunicationBook" onclick="window.__crmToggleQuick?.('hasCommunicationBook')">📖 聊過溝通本</button>
       <span class="quick-contact-hint" id="quick-contact-hint">${inf.lastContact ? '上次：' + inf.lastContact : ''}</span>
     </div>
     <div class="field-group">
@@ -315,6 +330,10 @@ export function renderPanel(n) {
         <div class="field-row">
           <div class="field-group"><div class="field-label">告知場地費</div><select class="field-input" data-info="knowsVenueFee" onchange="window.__crmSavePanel?.()"><option value="">—</option><option${inf.knowsVenueFee === '是' ? ' selected' : ''}>是</option><option${inf.knowsVenueFee === '否' ? ' selected' : ''}>否</option></select></div>
           <div class="field-group"><div class="field-label">告知學費79800</div><select class="field-input" data-info="knowsTuition" onchange="window.__crmSavePanel?.()"><option value="">—</option><option${inf.knowsTuition === '是' ? ' selected' : ''}>是</option><option${inf.knowsTuition === '否' ? ' selected' : ''}>否</option></select></div>
+        </div>
+        <div class="field-row">
+          <div class="field-group"><div class="field-label">是否做過問卷</div><select class="field-input" data-info="hasQuestionnaire" onchange="window.__crmSavePanel?.()"><option value="">—</option><option${inf.hasQuestionnaire === '是' ? ' selected' : ''}>是</option><option${inf.hasQuestionnaire === '否' ? ' selected' : ''}>否</option></select></div>
+          <div class="field-group"><div class="field-label">是否約過溝通本</div><select class="field-input" data-info="hasCommunicationBook" onchange="window.__crmSavePanel?.()"><option value="">—</option><option${inf.hasCommunicationBook === '是' ? ' selected' : ''}>是</option><option${inf.hasCommunicationBook === '否' ? ' selected' : ''}>否</option></select></div>
         </div>
         <div class="field-group"><div class="field-label">關鍵問題</div><textarea class="field-input field-textarea" data-info="keyQuestions" oninput="window.__crmSavePanel?.()" placeholder="客戶提出的關鍵問題">${escHtml(inf.keyQuestions)}</textarea></div>
         <div class="field-group">

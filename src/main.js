@@ -32,7 +32,7 @@ import {
 import {
   openPanel, closePanel, savePanel, updateStats,
   markContactedToday, toggleNeed, toggleRegion, toggleAcc,
-  copyCSheet, getPanelNodeId, setRenderNodesFn as panelSetRenderNodes,
+  copyCSheet, getPanelNodeId, toggleQuick, setRenderNodesFn as panelSetRenderNodes,
 } from './features/panel/index.js';
 
 // ── Events ────────────────────────────────────────────────────────────────────
@@ -58,6 +58,7 @@ import {
   updateScheduleSlot, updateBigThree, updateDailyConn, addDailyConn, removeDailyConn,
   updateReflect, saveDailyActInline, loadYestTomorrow,
   saveMonthSalesTarget, saveMonthlyGoalInputs, updateMonthlyProgressBars, renderMonthlyProgress,
+  exportDailyCSV,
 } from './features/daily/index.js';
 
 // ── Docs ──────────────────────────────────────────────────────────────────────
@@ -277,6 +278,7 @@ function registerWindowBridge() {
 
   window.__crmSavePanel         = () => savePanel();
   window.__crmMarkContacted     = () => markContactedToday();
+  window.__crmToggleQuick       = f => toggleQuick(f);
   window.__crmToggleNeed        = el => toggleNeed(el);
   window.__crmToggleRegion      = el => toggleRegion(el);
   window.__crmToggleAcc         = h => toggleAcc(h);
@@ -344,6 +346,7 @@ function registerWindowBridge() {
   window.updateReflect          = (t, i, v) => updateReflect(t, i, v);
   window.saveDailyActInline     = el => saveDailyActInline(el);
   window.loadYestTomorrow       = () => loadYestTomorrow();
+  window.exportDailyCSV         = () => exportDailyCSV();
   window.saveMonthSalesTarget   = () => saveMonthSalesTarget();
   window.saveMonthlyGoalInputs  = () => saveMonthlyGoalInputs();
 
@@ -584,7 +587,52 @@ export async function init() {
   });
 
   console.log('[CRM] init complete');
+
+  // 啟動後在 console 顯示版本診斷
+  showVersionDiagnostics();
 }
+
+// ── 版本診斷工具 ──────────────────────────────────────────────────────────
+
+function showVersionDiagnostics() {
+  const scripts = document.querySelectorAll('script[src], link[rel=stylesheet]');
+  const assets = Array.from(scripts).map(el => {
+    const src = el.src || el.href;
+    return src ? src.replace(location.origin, '') : null;
+  }).filter(Boolean);
+  console.log(`%c🔍 FDD-CRM 版本診斷`, 'font-size:16px;font-weight:bold');
+  console.log(`%c現在時間: ${new Date().toLocaleString('zh-TW')}`, 'color:#888');
+  console.log(`%c載入的資源:`, 'color:#ff0;font-weight:bold');
+  assets.forEach(a => console.log(`  ${a}`));
+  // 檢查關鍵函數是否存在
+  const checks = {
+    exportDailyCSV: typeof window.exportDailyCSV === 'function',
+    toggleQuick: typeof window.__crmToggleQuick === 'function',
+  };
+  console.log(`%c功能檢查:`, 'color:#ff0;font-weight:bold');
+  Object.entries(checks).forEach(([k, v]) => {
+    console.log(`  ${k}: ${v ? '✅' : '❌ 不存在'}`);
+  });
+}
+
+// 註冊到 window 讓使用者可以隨時在 DevTools 執行
+window.__crmDiag = function() {
+  const v = document.querySelector('script[src*="main.js"]')?.getAttribute('src') || 'unknown';
+  console.log(`%c🩺 FDD-CRM 診斷面板`, 'font-size:20px;font-weight:bold');
+  console.log(`main.js: ${v}`);
+  console.log(`CSS:`, document.querySelector('link[href*="crm.css"]')?.getAttribute('href'));
+  console.log(`SW 狀態:`, navigator.serviceWorker?.controller?.scriptURL || '無 SW');
+  console.log(`localStorage crm-daily-reports: ${Object.keys(JSON.parse(localStorage.getItem('crm-daily-reports')||'{}')).length} 天`);
+  console.log(`localStorage crm-nodes: ${JSON.parse(localStorage.getItem('crm-nodes')||'[]').length} 個節點`);
+  console.log(`%c功能清單:`, 'font-weight:bold');
+  const fns = {
+    '📤 匯出試算表': !!window.exportDailyCSV,
+    '📋 做過問卷按鈕': !!window.__crmToggleQuick,
+    '📖 溝通本按鈕': !!window.__crmToggleQuick,
+  };
+  Object.entries(fns).forEach(([k, v]) => console.log(`  ${v?'✅':'❌'} ${k}`));
+  console.log(`%c如果你看到 ❌ → 代表你載入的是舊版 JS，請強制重新整理`, 'color:#ff8040');
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Error Monitor UI
